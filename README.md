@@ -4,6 +4,20 @@
 
 Tác giả: **Trần Minh Tâm** · Giấy phép: MIT (xem `LICENSE`, `THIRD_PARTY_NOTICES.txt`) · Ngôn ngữ: C++20
 
+## English summary
+
+**FastCAE** is a free, open-source (MIT) CAE application for Windows and Linux: structural FEM, heat transfer and CFD, CAD import (STEP/IGES/BREP/STL and common mesh formats), and its own Qt6/OpenGL results viewer. It can also drive open-source solvers (CalculiX, OpenFOAM, SU2, Gmsh, PETSc) and runs user algorithms written in Lua, Python or C++.
+
+- Download: [GitHub Releases](https://github.com/Trantamming/FastCAE/releases)
+- Build from source: see "Biên dịch nhanh" below and `.github/workflows/build.yml`
+- License: [MIT](LICENSE); third-party components: [THIRD_PARTY_NOTICES.txt](THIRD_PARTY_NOTICES.txt)
+
+## Code signing policy
+
+Free code signing provided by [SignPath.io](https://signpath.io), certificate by [SignPath Foundation](https://signpath.org).
+See [CODE_SIGNING_POLICY.md](CODE_SIGNING_POLICY.md) for roles, build process and privacy statement.
+
+
 ## Định hướng
 
 FastCAE là nơi **dựng mô hình** (CAD → lưới → liên kết → tải), nơi **lập trình thuật toán CAE** (FEM, CFD...) và **gọi thư viện/solver mã nguồn mở bên ngoài**, rồi **hiển thị kết quả** trên GUI. Thư viện CAE không được nhúng vào FastCAE. Xem [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) và ví dụ FEM tự viết bằng Python trong `examples/solver_plugin/`:

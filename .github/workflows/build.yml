@@ -6,6 +6,9 @@ on:
     tags: ['v*']
   pull_request:
 
+permissions:
+  contents: write   # cần để tạo/đính kèm GitHub Release
+
 jobs:
   linux:
     runs-on: ubuntu-24.04
@@ -57,7 +60,8 @@ jobs:
         run: |
           if (-not (Get-Command iscc -ErrorAction SilentlyContinue) -and -not (Test-Path "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe")) { choco install innosetup -y --no-progress }
           cmake --install build --config Release --prefix dist
-          $ver = "1.0.0"
+          $ver = "0.1.0"
+          if ($env:GITHUB_REF -like "refs/tags/v*") { $ver = $env:GITHUB_REF_NAME.TrimStart("v") }   # phiên bản lấy từ tag vX.Y.Z
           if ($env:PFX_BASE64) {   # co chung chi ky ma trong secrets: ky bo cai (giam canh bao SmartScreen)
             [IO.File]::WriteAllBytes("sign.pfx", [Convert]::FromBase64String($env:PFX_BASE64))
             $sign = @("-SignPfx", "sign.pfx")
@@ -78,6 +82,13 @@ jobs:
             build/*.exe
             build/*.zip
             dist-installer/*
+      - name: Đính kèm vào GitHub Release (khi đẩy tag vX.Y.Z)
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist-installer/*
+            build/*.zip
 
   sanitizers:
     # Bắt rò rỉ bộ nhớ / hành vi không xác định (UB) trong lõi + CLI + script Lua.
