@@ -8,3 +8,6 @@ out/
 .idea/
 CMakeUserPresets.json
 *.vtk
+dist
+dist-installer/
+*.exe
