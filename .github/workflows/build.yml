@@ -61,7 +61,16 @@ jobs:
           if (-not (Get-Command iscc -ErrorAction SilentlyContinue) -and -not (Test-Path "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe")) { choco install innosetup -y --no-progress }
           if (Test-Path dist) { Remove-Item dist -Recurse -Force }   # bắt buộc: không để sót DLL cũ trong thư mục cài
           if (Test-Path dist-installer) { Remove-Item dist-installer -Recurse -Force }
-          cmake --install build --config Release --prefix dist
+          $dist = Join-Path (Get-Location) "dist"   # đường dẫn tuyệt đối để script gom DLL Qt của CMake chạy đúng
+          cmake --install build --config Release --prefix $dist
+          if (-not (Test-Path "$dist\bin\Qt6Widgets.dll")) {   # script gom DLL không chạy: gọi windeployqt trực tiếp
+            Write-Host "Qt DLL chưa có trong dist\bin, chạy windeployqt"
+            windeployqt --release --no-translations "$dist\bin\fastcae.exe"
+          }
+          foreach ($f in "bin\fastcae.exe","bin\Qt6Core.dll","bin\Qt6Widgets.dll","bin\Qt6OpenGLWidgets.dll","bin\Qt6Gui.dll","plugins\platforms\qwindows.dll") {
+            if (-not (Test-Path "$dist\$f")) { throw "Thiếu $f trong dist: bộ cài sẽ không chạy được" }
+          }
+          if (Test-Path "$dist\bin\libstdc++-6.dll") { throw "dist có DLL MinGW lẫn vào bộ cài MSVC" }
           $ver = "1.0.0"
           if ($env:GITHUB_REF -like "refs/tags/v*") { $ver = $env:GITHUB_REF_NAME.TrimStart("v") }   # phiên bản lấy từ tag vX.Y.Z
           if ($env:PFX_BASE64) {   # co chung chi ky ma trong secrets: ky bo cai (giam canh bao SmartScreen)
@@ -70,7 +79,7 @@ jobs:
           } else { $sign = @() }
           $iscc = (Get-Command iscc -ErrorAction SilentlyContinue).Source
           if (-not $iscc) { $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" }
-          $isccArgs = @("/DMyAppVersion=$ver", "/DSourceDir=$((Resolve-Path dist).Path)")
+          $isccArgs = @("/DMyAppVersion=$ver", "/DSourceDir=$dist")
           if ($sign.Count -gt 0) {
             Get-ChildItem dist\bin\*.exe | ForEach-Object { signtool sign /fd SHA256 /tr http://timestamp.digicert.com /td SHA256 /f sign.pfx /p $env:FASTCAE_SIGN_PASSWORD $_.FullName }
             $isccArgs += @("/DSignInstaller", "/Sfcsign=signtool sign /fd SHA256 /tr http://timestamp.digicert.com /td SHA256 /f sign.pfx /p $env:FASTCAE_SIGN_PASSWORD `$f")
