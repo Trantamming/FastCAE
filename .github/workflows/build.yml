@@ -60,7 +60,7 @@ jobs:
         run: |
           if (-not (Get-Command iscc -ErrorAction SilentlyContinue) -and -not (Test-Path "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe")) { choco install innosetup -y --no-progress }
           cmake --install build --config Release --prefix dist
-          $ver = "0.1.0"
+          $ver = "1.0.0"
           if ($env:GITHUB_REF -like "refs/tags/v*") { $ver = $env:GITHUB_REF_NAME.TrimStart("v") }   # phiên bản lấy từ tag vX.Y.Z
           if ($env:PFX_BASE64) {   # co chung chi ky ma trong secrets: ky bo cai (giam canh bao SmartScreen)
             [IO.File]::WriteAllBytes("sign.pfx", [Convert]::FromBase64String($env:PFX_BASE64))
