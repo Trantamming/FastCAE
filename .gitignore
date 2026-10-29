@@ -13,3 +13,7 @@ dist-installer/
 *.exe
 *.pfx
 imported.vtk
+dist/
+dist-installer/
+Testing/
+ccx_shell/

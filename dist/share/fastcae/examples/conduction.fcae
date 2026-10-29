@@ -1,8 +1,0 @@
-# Dẫn nhiệt 1D qua thanh: T=100 tại x=0, T=0 tại x=1.
-type = thermal
-geometry = box 1.0 0.1 0.1
-divisions = 10 2 2
-k = 50
-temp = xmin 100
-temp = xmax 0
-output = conduction.vtk
