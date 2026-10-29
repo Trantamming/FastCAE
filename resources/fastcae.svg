@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1f2937"/>
+      <stop offset="1" stop-color="#0b1220"/>
+    </linearGradient>
+    <linearGradient id="hot" x1="0" y1="1" x2="1" y2="0">
+      <stop offset="0" stop-color="#3da9fc"/>
+      <stop offset="0.5" stop-color="#2dd4bf"/>
+      <stop offset="1" stop-color="#f59e0b"/>
+    </linearGradient>
+  </defs>
+  <rect width="256" height="256" rx="48" fill="url(#bg)"/>
+  <!-- tetrahedral mesh motif -->
+  <g fill="none" stroke="url(#hot)" stroke-width="7" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M128 40 L52 172 L128 212 L204 172 Z"/>
+    <path d="M128 40 L128 212"/>
+    <path d="M52 172 L204 172"/>
+  </g>
+  <circle cx="128" cy="40" r="10" fill="#f59e0b"/>
+  <circle cx="52" cy="172" r="10" fill="#3da9fc"/>
+  <circle cx="204" cy="172" r="10" fill="#2dd4bf"/>
+  <circle cx="128" cy="212" r="10" fill="#3da9fc"/>
+</svg>

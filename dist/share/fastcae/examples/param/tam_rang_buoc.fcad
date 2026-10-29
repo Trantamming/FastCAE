@@ -1,0 +1,37 @@
+# Tấm có lỗ, dựng hoàn toàn bằng RÀNG BUỘC: tọa độ điểm chỉ là giá trị ước đoán ban đầu (cố ý lệch),
+# kích thước thật nằm ở tham số. Đổi L, W, R, E rồi dựng lại là hình tự cập nhật.
+param L = 0.12     # dài
+param W = 0.06     # rộng
+param R = 0.008    # bán kính lỗ
+param E = 0.03     # tâm lỗ cách mép trái
+param T = 0.01     # dày
+
+csketch plate xy 0
+  pt A 0 0
+  pt B 0.1 0.01
+  pt C 0.11 0.05
+  pt D 0.01 0.07
+  pt O 0.02 0.03
+  pt F 0.02 0
+  circle hole O 0.01
+  line ab A B
+  line bc B C
+  line cd C D
+  line da D A
+  line of O F
+  fix A 0 0
+  horizontal ab
+  vertical bc
+  horizontal cd
+  vertical da
+  length ab L
+  length bc W
+  on F ab              # F là chân vuông góc từ tâm lỗ xuống cạnh đáy
+  vertical of
+  dist A F E
+  length of W/2        # tâm lỗ ở giữa chiều rộng
+  radius hole R
+  loop A B C D         # vòng đầu = biên ngoài
+  loopcircle hole      # vòng sau = lỗ
+end
+extrude body plate T

@@ -1,0 +1,11 @@
+# Khai báo solver tự lập trình để FastCAE gọi (không cần biên dịch lại FastCAE).
+# Dùng: đặt FASTCAE_SOLVER_PLUGINS=<thư mục này> (hoặc chép file vào thư mục solvers.d của người dùng),
+# rồi trong case ghi:  solver = my_fem
+id = my_fem
+name = FEM tự lập trình (Python: numpy + scipy)
+category = fem
+license = MIT
+capability = Đàn hồi tuyến tính 3D và dẫn nhiệt dừng, tứ diện 4/10 nút; ví dụ thay thuật toán của riêng bạn.
+env = FASTCAE_PYTHON                      # đặt biến này = đường dẫn python.exe (có numpy, scipy) nếu PATH không đúng
+input = model
+step = python3, python | "{plugin_dir}/my_fem.py" {input} {result}

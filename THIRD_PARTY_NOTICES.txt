@@ -1,0 +1,52 @@
+﻿FastCAE - Thông báo bản quyền và giấy phép thành phần bên thứ ba
+Tác giả FastCAE: Trần Minh Tâm (MIT License) - xem tệp LICENSE.
+
+Tệp này liệt kê các thành phần và solver mà FastCAE sử dụng hoặc có thể gọi. Đây là tổng hợp
+kỹ thuật, KHÔNG phải tư vấn pháp lý. Hãy đọc LICENSE gốc của từng dự án trước khi phân phối lại.
+Chi tiết, nguồn tra cứu và mức ràng buộc: docs/LICENSES.md. Lệnh: fastcae-cli licenses.
+Đối chiếu với nguồn gốc lần cuối: 10/2026. Mục ghi "chưa đối chiếu" cần kiểm tra lại trước khi phát hành.
+Văn bản giấy phép đi kèm bộ cài nằm trong thư mục licenses\ (LGPL-3.0, GPL-3.0, Ngoại lệ Thư viện Chạy của GCC, winpthreads).
+
+--- Thành phần liên kết hoặc đóng gói cùng FastCAE (tuỳ cấu hình biên dịch/bộ cài) ---
+Lua 5.4.7       MIT                           Nhúng sẵn (third_party/lua); xem LICENSE-Lua.txt. Copyright (C) 1994-2024 Lua.org, PUC-Rio.
+Qt 6            LGPL-3.0 hoặc GPL, hoặc thương mại   Liên kết động (chỉ Qt Widgets và Qt OpenGLWidgets); kèm DLL Qt trong bộ cài Windows.
+                                              Người dùng phải được phép thay DLL Qt (LGPL): chỉ cần chép DLL Qt cùng phiên bản đè vào thư mục bin.
+                                              Văn bản LGPL-3.0: licenses\LGPL-3.0.txt. Mã nguồn Qt: https://download.qt.io (Qt 6 mã nguồn mở).
+                                              Qt chứa mã bên thứ ba có giấy phép riêng (xem tài liệu "Third-Party Code in Qt" và SBOM của Qt 6.8 trở lên).
+Gmsh            GPL-2.0+ kèm ngoại lệ (chỉ TetGen, Netgen, Chaco, METIS, OpenCASCADE)
+                                              Tuỳ chọn khi biên dịch: NẾU LIÊN KẾT thì bản FastCAE là tác phẩm gộp GPL-2+. Hoặc dùng gmsh ngoài.
+OpenCASCADE     LGPL-2.1 + ngoại lệ Open CASCADE 1.0   Đi kèm Gmsh; chỉ có khi build FASTCAE_WITH_GMSH=ON. Có thể dùng theo giấy phép thương mại riêng.
+OpenMP runtime  GPL-3.0 + Ngoại lệ Thư viện Chạy của GCC   libgomp-1.dll (MinGW) kèm cạnh file chạy. Chương trình liên kết với nó không bị buộc theo GPL,
+                                              nhưng chính DLL là GPL-3.0: kèm licenses\GPL-3.0.txt và licenses\GCC-Runtime-Library-Exception-3.1.txt.
+                                              Mã nguồn tương ứng (GCC 13.1.0 của Qt Tools mingw1310_64): https://gcc.gnu.org
+MinGW runtime   GPL-3.0 + Ngoại lệ Thư viện Chạy của GCC   libstdc++-6.dll và libgcc_s_seh-1.dll (nếu windeployqt chép vào bin). Cùng điều kiện như OpenMP runtime.
+                winpthreads: MIT AND BSD-3-Clause-Clear   libwinpthread-1.dll (nếu có). Văn bản: licenses\winpthreads-COPYING.txt (mingw-w64).
+PETSc           BSD-2-Clause                  Tuỳ chọn khi build (FASTCAE_WITH_PETSC=ON). Không áp dụng cho gói tải kèm --download-package.
+                                              Cần MPI khi build: Open MPI theo BSD 3 điều khoản biến thể Open MPI (kèm đoạn không bảo đảm về sáng chế và
+                                              giấy phép Chính phủ Mỹ cho một phần mã; có gộp libevent... với giấy phép riêng). Giữ các thông báo này nếu phân phối Open MPI.
+
+--- Solver chạy như tiến trình riêng (KHÔNG liên kết vào FastCAE) ---
+CalculiX              GPL-2.0+
+OpenFOAM              GPL-3.0+ (nhánh Foundation và ESI/OpenCFD)
+OpenRadioss           AGPL-3.0   (kho gốc bị Siemens gỡ đầu 10/2026, Siemens thông báo tiếp tục theo AGPL; chưa đối chiếu trực tiếp. Thành phần hm_reader là nhị phân đóng)
+OpenCourant           AGPL-3.0   (nhánh cộng đồng tiếp nối OpenRadioss; đã đối chiếu: GitHub ghi AGPL-3.0, README ghi GNU AGPL v3)
+Code_Aster            GPL-3.0+   (đã đối chiếu tiêu đề file nguồn trong gitlab.com/codeaster/src: GPL phiên bản 3 hoặc bản sau, EDF R&D)
+                                 Bản đóng gói (conda-forge) còn có thành phần CECILL-C, Apache-2.0, LGPL-3.0-only: đọc giấy phép của đúng gói bạn cài.
+Elmer FEM             GPL-2.0+   (đã đối chiếu README chính thức: GPL, riêng thư viện ElmerSolver là LGPL-2.1+; ElmerGUI có ngoại lệ OpenCASCADE;
+                                 thành phần con như METIS, umfpack có giấy phép riêng)
+SU2                   LGPL-2.1
+Code_Saturne          GPL-2.0+   (đã đối chiếu tiêu đề file nguồn 7.3-8.3: GPL phiên bản 2 hoặc bản sau, EDF S.A.; file COPYING là GPL-2.0)
+preCICE               LGPL-3.0
+Project Chrono        BSD-3-Clause (BSD 3 điều khoản)
+FEniCSx / DOLFINx     LGPL-3.0+  (đã đối chiếu DOLFINx, FFCx, Basix: LGPL-3.0 hoặc bản sau)
+Kratos Multiphysics   BSD-4-Clause có điều khoản quảng cáo: tài liệu quảng bá phải ghi
+                      "This product includes Kratos Multi-Physics technology." (kratos/license.txt)
+
+--- Thư viện có thể nhúng ở mức mã nguồn trong các bản sau (chưa dùng trong v0.1) ---
+MFEM                  BSD-3-Clause
+deal.II               LGPL-2.1+  (đã đối chiếu LICENSE.md: cả thư viện hiện theo LGPL-2.1 hoặc bản sau; MỘT PHẦN mã được cấp song song
+                                 Apache-2.0 + ngoại lệ LLVM hoặc LGPL-2.1+, dự án đang chuyển đổi dần. Chưa thể coi cả thư viện là Apache.)
+
+Nếu bạn đóng gói kèm chương trình GPL/AGPL/LGPL vào bộ cài FastCAE, bạn phải kèm văn bản giấy phép
+của chúng, thông báo bản quyền, và (với GPL/AGPL) cung cấp hoặc chỉ rõ cách lấy mã nguồn tương ứng.
+Với LGPL (Qt, OpenCASCADE...): kèm văn bản LGPL, liên kết động, cho phép người dùng thay thư viện.

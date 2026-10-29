@@ -1,0 +1,18 @@
+# Tấm thép 100 x 40 x 20 mm có lỗ khoan Ø16 mm, kéo dọc trục 10 kN.
+# Hình học nhập từ file STEP (cần bản build có Gmsh). Đơn vị trong file STEP là mm.
+#
+# Kiểm chứng: ứng suất danh nghĩa trên tiết diện thu hẹp = 10000 / (24 mm x 20 mm) = 20.83 MPa.
+# Hệ số tập trung ứng suất (Peterson, d/W = 0.4): Kt ≈ 2.23  =>  sigma_max ≈ 46.5 MPa tại mép lỗ.
+type = elastic
+geometry = file plate_hole.step
+unit_scale = 0.001       # mm -> m
+mesh_size = 0.003        # cỡ phần tử tối đa 3 mm
+order = 2                # tứ diện 10 nút
+E = 210e9
+nu = 0.3
+fix = xmin
+load = xmax 10000 0 0
+output = plate_hole_petsc.vtk
+
+# Bộ giải tuyến tính PETSc (cần build với -DFASTCAE_WITH_PETSC=ON): cùng nghiệm, ít vòng lặp hơn.
+linear_solver = petsc

@@ -1,0 +1,13 @@
+[Desktop Entry]
+Type=Application
+Name=FastCAE
+GenericName=CAE Analysis
+Comment=Open source CAE: FEM, heat transfer, CFD, CAD import
+Comment[vi]=Phần mềm CAE mã nguồn mở: FEM, truyền nhiệt, CFD, nhập CAD
+Exec=fastcae %f
+Icon=fastcae
+Terminal=false
+Categories=Science;Engineering;Education;
+MimeType=application/x-fastcae-case;
+Keywords=CAE;FEM;CFD;CAD;simulation;
+X-Author=Trần Minh Tâm

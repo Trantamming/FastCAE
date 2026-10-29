@@ -1,0 +1,27 @@
+<RCC>
+    <qresource prefix="/">
+        <file alias="fastcae.svg">../../resources/fastcae.svg</file>
+        <file alias="fastcae.png">../../resources/fastcae-256.png</file>
+        <file alias="scripts/00_xin_chao.lua">../../scripts/00_xin_chao.lua</file>
+        <file alias="scripts/01_tiet_dien.lua">../../scripts/01_tiet_dien.lua</file>
+        <file alias="scripts/02_quet_tham_so_dam.lua">../../scripts/02_quet_tham_so_dam.lua</file>
+        <file alias="scripts/03_toi_uu_tiet_dien.lua">../../scripts/03_toi_uu_tiet_dien.lua</file>
+        <file alias="scripts/04_dan_so_khoang.lua">../../scripts/04_dan_so_khoang.lua</file>
+        <file alias="scripts/05_tan_so_theo_chieu_dai.lua">../../scripts/05_tan_so_theo_chieu_dai.lua</file>
+        <file alias="scripts/06_to_hop_tai_trong.lua">../../scripts/06_to_hop_tai_trong.lua</file>
+        <file alias="scripts/07_hoi_tu_luoi_tam.lua">../../scripts/07_hoi_tu_luoi_tam.lua</file>
+        <file alias="scripts/10_solver_ngoai.py">../../scripts/10_solver_ngoai.py</file>
+        <file alias="scripts/11_quet_tham_so.py">../../scripts/11_quet_tham_so.py</file>
+        <file alias="scripts/14_hien_thi_ket_qua.py">../../scripts/14_hien_thi_ket_qua.py</file>
+        <file alias="scripts/12_solver_ngoai.cpp">../../scripts/12_solver_ngoai.cpp</file>
+        <file alias="scripts/13_dam_voi_main.cpp">../../scripts/13_dam_voi_main.cpp</file>
+        <file alias="help/huong_dan.html">../../docs/help/huong_dan.html</file>
+        <file alias="LICENSE.txt">../../LICENSE</file>
+        <file alias="LICENSE-Lua.txt">../../third_party/lua/LICENSE.txt</file>
+        <file alias="THIRD_PARTY_NOTICES.txt">../../THIRD_PARTY_NOTICES.txt</file>
+        <file alias="licenses/LGPL-3.0.txt">../../third_party/licenses/LGPL-3.0.txt</file>
+        <file alias="licenses/GPL-3.0.txt">../../third_party/licenses/GPL-3.0.txt</file>
+        <file alias="licenses/GCC-Runtime-Library-Exception-3.1.txt">../../third_party/licenses/GCC-Runtime-Library-Exception-3.1.txt</file>
+        <file alias="licenses/winpthreads-COPYING.txt">../../third_party/licenses/winpthreads-COPYING.txt</file>
+    </qresource>
+</RCC>

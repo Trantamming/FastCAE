@@ -1,0 +1,39 @@
+# Mat on dinh cot Euler cong xon (IPE300, L = 3 m), tai nen doc truc 1 kN.
+# He so tai toi han lambda = 346.99 (Pcr = pi^2 E Iz / 4L^2 = 346.99 kN); tai toi han = lambda x tai da dat.
+# Dầm công xôn (mau khung/dan FastCAE, tac gia Tran Minh Tam)
+# Dầm thép chữ I ngàm một đầu, lực tập trung ở đầu tự do.
+type = frame
+E = 210e9
+nu = 0.3
+rho = 7850
+yield = 235e6   # gioi han chay thep CCT34 (Pa): tinh he so su dung
+section = IPE ibeam 0.15 0.30 0.0107 0.0071   # chu I: b h tf tw (m)
+node = 1 0 0 0
+node = 2 0.25 0 0
+node = 3 0.5 0 0
+node = 4 0.75 0 0
+node = 5 1 0 0
+node = 6 1.25 0 0
+node = 7 1.5 0 0
+node = 8 1.75 0 0
+node = 9 2 0 0
+node = 10 2.25 0 0
+node = 11 2.5 0 0
+node = 12 2.75 0 0
+node = 13 3 0 0
+member = 1 2 IPE beam
+member = 2 3 IPE beam
+member = 3 4 IPE beam
+member = 4 5 IPE beam
+member = 5 6 IPE beam
+member = 6 7 IPE beam
+member = 7 8 IPE beam
+member = 8 9 IPE beam
+member = 9 10 IPE beam
+member = 10 11 IPE beam
+member = 11 12 IPE beam
+member = 12 13 IPE beam
+support = 1 fixed
+nload = 13 -1000 0 0
+
+analysis = buckling

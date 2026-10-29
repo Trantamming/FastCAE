@@ -1,0 +1,10 @@
+# Dầm console thép 1.0 x 0.1 x 0.1 m, ngàm tại x=0, lực 1 kN hướng xuống tại đầu tự do.
+type = elastic
+geometry = box 1.0 0.1 0.1
+divisions = 20 3 3
+order = 2          # 1 = tứ diện 4 nút (cứng khi uốn), 2 = tứ diện 10 nút (chính xác hơn)
+E = 210e9
+nu = 0.3
+fix = xmin
+load = xmax 0 0 -1000
+output = cantilever.vtk

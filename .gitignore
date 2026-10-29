@@ -1,0 +1,10 @@
+build/
+build-*/
+AppDir/
+.appimage-tools/
+*.AppImage
+out/
+.vscode/
+.idea/
+CMakeUserPresets.json
+*.vtk

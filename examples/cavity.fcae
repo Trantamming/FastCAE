@@ -1,0 +1,5 @@
+# Dòng chảy khoang kín nắp trượt, Re = 100 (so sánh Ghia et al. 1982).
+type = cavity
+n = 41
+Re = 100
+output = cavity.vtk

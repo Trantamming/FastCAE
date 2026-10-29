@@ -1,0 +1,100 @@
+name: build
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+
+jobs:
+  linux:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake ninja-build qt6-base-dev libgl-dev rpm
+      - name: Configure
+        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DFASTCAE_WITH_GMSH=OFF
+      - name: Build
+        run: cmake --build build
+      - name: Test
+        run: ctest --test-dir build --output-on-failure
+      - name: Package (DEB/RPM/TGZ)
+        run: cd build && cpack
+      - uses: actions/upload-artifact@v4
+        with:
+          name: fastcae-linux
+          path: |
+            build/*.deb
+            build/*.rpm
+            build/*.tar.gz
+
+  windows:
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.7.*'
+          arch: win64_msvc2019_64
+      - name: Configure
+        shell: pwsh
+        run: cmake -S . -B build -G "Visual Studio 17 2022" -A x64 -DFASTCAE_WITH_GMSH=OFF
+      - name: Build
+        run: cmake --build build --config Release
+      - name: Test
+        run: ctest --test-dir build -C Release --output-on-failure
+      - name: Package (NSIS + ZIP)
+        run: cd build && cpack -C Release
+      - name: Inno Setup installer
+        shell: pwsh
+        env:
+          PFX_BASE64: ${{ secrets.WINDOWS_PFX_BASE64 }}
+          FASTCAE_SIGN_PASSWORD: ${{ secrets.WINDOWS_PFX_PASSWORD }}
+        run: |
+          if (-not (Get-Command iscc -ErrorAction SilentlyContinue) -and -not (Test-Path "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe")) { choco install innosetup -y --no-progress }
+          cmake --install build --config Release --prefix dist
+          $ver = "1.0.0"
+          if ($env:PFX_BASE64) {   # co chung chi ky ma trong secrets: ky bo cai (giam canh bao SmartScreen)
+            [IO.File]::WriteAllBytes("sign.pfx", [Convert]::FromBase64String($env:PFX_BASE64))
+            $sign = @("-SignPfx", "sign.pfx")
+          } else { $sign = @() }
+          $iscc = (Get-Command iscc -ErrorAction SilentlyContinue).Source
+          if (-not $iscc) { $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" }
+          $isccArgs = @("/DMyAppVersion=$ver", "/DSourceDir=$((Resolve-Path dist).Path)")
+          if ($sign.Count -gt 0) {
+            Get-ChildItem dist\bin\*.exe | ForEach-Object { signtool sign /fd SHA256 /tr http://timestamp.digicert.com /td SHA256 /f sign.pfx /p $env:FASTCAE_SIGN_PASSWORD $_.FullName }
+            $isccArgs += @("/DSignInstaller", "/Sfcsign=signtool sign /fd SHA256 /tr http://timestamp.digicert.com /td SHA256 /f sign.pfx /p $env:FASTCAE_SIGN_PASSWORD `$f")
+          }
+          & $iscc @isccArgs packaging\windows\fastcae.iss
+          Get-ChildItem dist-installer\*.exe | ForEach-Object { "$((Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLower())  $($_.Name)" | Set-Content -Encoding ascii "$($_.FullName).sha256" }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: fastcae-windows
+          path: |
+            build/*.exe
+            build/*.zip
+            dist-installer/*
+
+  sanitizers:
+    # Bắt rò rỉ bộ nhớ / hành vi không xác định (UB) trong lõi + CLI + script Lua.
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake ninja-build
+      - name: Configure (ASan + UBSan)
+        run: >
+          cmake -S . -B build-san -G Ninja -DCMAKE_BUILD_TYPE=Debug
+          -DFASTCAE_BUILD_GUI=OFF -DFASTCAE_WITH_GMSH=OFF
+          -DCMAKE_CXX_FLAGS="-fsanitize=address,undefined -fno-omit-frame-pointer"
+          -DCMAKE_EXE_LINKER_FLAGS="-fsanitize=address,undefined"
+      - name: Build
+        run: cmake --build build-san
+      - name: Test
+        run: ctest --test-dir build-san --output-on-failure

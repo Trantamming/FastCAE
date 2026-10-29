@@ -1,0 +1,743 @@
+<html>
+<head>
+<meta charset="utf-8">
+<title>FastCAE - Hướng dẫn sử dụng</title>
+</head>
+<body>
+
+<h1><a name="dau-trang">FastCAE – Hướng dẫn sử dụng</a></h1>
+<p class="dim">Tài liệu đi kèm phần mềm · Tác giả phần mềm: Trần Minh Tâm · Giấy phép MIT.<br>
+Mở bất cứ lúc nào bằng <b>F1</b> hoặc <b>Trợ giúp ▸ Hướng dẫn sử dụng</b>. Chọn chương ở danh sách bên trái, gõ từ khoá vào ô <i>Tìm</i> rồi nhấn Enter để tìm trong tài liệu.</p>
+
+<table width="100%" cellspacing="0" cellpadding="8"><tr><td class="note">
+<b>Cách đọc nhanh.</b> Mới dùng lần đầu: đọc chương <a href="#nang-luc">1</a> (FastCAE làm được gì) và chương <a href="#bat-dau">2</a> (5 phút đầu tiên).
+Muốn tự lập trình thuật toán hoặc gọi thư viện CAE ngoài: chương <a href="#quy-trinh">18</a> và <a href="#bai-thuc-hanh">19</a>. Cần làm một việc cụ thể: nhảy tới chương tương ứng (kết cấu, nhiệt, CFD, nhập CAD…). Cần tra cú pháp file bài toán: chương <a href="#file-case">14</a>.
+</td></tr></table>
+
+<!-- ======================================================================= -->
+<h2><a name="nang-luc">1. Năng lực tính toán CAE của FastCAE</a></h2>
+
+<p><b>FastCAE</b> là phần mềm CAE (Computer-Aided Engineering – mô phỏng kỹ thuật hỗ trợ bởi máy tính) mã nguồn mở, gom toàn bộ quy trình
+<i>nhập hình học → chia lưới → đặt vật liệu, liên kết, tải → giải → xem kết quả</i> vào một cửa sổ duy nhất.
+Phần mềm viết bằng C++20, giao diện Qt 6 và OpenGL tự viết (không cần ParaView hay VTK để xem kết quả).</p>
+
+<p>Sức mạnh tính toán của FastCAE đến từ <b>hai tầng bổ sung cho nhau</b>:</p>
+<ul>
+<li><b>Bộ giải tích hợp sẵn</b> – chạy ngay sau khi cài, không cần cài thêm gì: phần tử hữu hạn đàn hồi tuyến tính 3D (tứ diện bậc 1 và bậc 2), truyền nhiệt dừng, khung/dàn 1D (tĩnh, dao động riêng, mất ổn định), CFD 2D khoang kín. Tính song song bằng OpenMP, bộ giải tuyến tính tự chọn Cholesky trực tiếp hoặc CG, có thể chuyển sang PETSc.</li>
+<li><b>Cầu nối tới solver mã nguồn mở trưởng thành</b> – FastCAE ghi file đầu vào, chạy solver như một tiến trình riêng rồi đọc kết quả về hiển thị ngay trong khung 3D. Đã chạy thật với <b>CalculiX</b> (phi tuyến, dẻo, động lực học, tiếp xúc, nhiệt–cơ, tấm/vỏ), <b>OpenFOAM</b> (CFD 3D tầng lưu và rối), <b>Gmsh</b> (chia lưới, nhập CAD) và <b>PETSc</b>.</li>
+</ul>
+
+<h3>1.1. Bản đồ năng lực</h3>
+<table width="100%" border="1" cellspacing="0" cellpadding="6">
+<tr><th align="left">Lĩnh vực</th><th align="left">FastCAE làm được</th><th align="left">Bộ giải</th></tr>
+<tr><td><b>Kết cấu 3D</b></td><td>Đàn hồi tuyến tính, ứng suất von Mises, tải lực theo diện tích mặt; áp suất theo mặt và trọng lực (CalculiX)</td><td>Tích hợp sẵn (T4/T10) hoặc CalculiX</td></tr>
+<tr><td><b>Dao động riêng</b></td><td>Tần số và dạng dao động riêng của khối đặc, khung/dàn 1D</td><td>CalculiX (khối đặc), tích hợp sẵn (khung 1D)</td></tr>
+<tr><td><b>Mất ổn định</b></td><td>Hệ số tải tới hạn (Euler) và dạng mất ổn định tuyến tính</td><td>CalculiX, tích hợp sẵn (khung 1D)</td></tr>
+<tr><td><b>Phi tuyến</b></td><td>Biến dạng lớn (NLGEOM), vật liệu dẻo hoá bền tuyến tính</td><td>CalculiX</td></tr>
+<tr><td><b>Động lực học</b></td><td>Đáp ứng theo thời gian (động lực học ngầm), tải bậc thang, trọng lực</td><td>CalculiX</td></tr>
+<tr><td><b>Tiếp xúc</b></td><td>Tiếp xúc không ma sát nhiều vật thể, xuất áp suất tiếp xúc</td><td>CalculiX</td></tr>
+<tr><td><b>Truyền nhiệt</b></td><td>Dẫn nhiệt dừng, dẫn nhiệt quá độ, ứng suất nhiệt (nhiệt–cơ)</td><td>Tích hợp sẵn hoặc CalculiX</td></tr>
+<tr><td><b>Kết cấu công trình</b></td><td>Thư viện dầm I/U/L/T, ống, tấm, tường, móng, tường chắn; khung và dàn 1D (dầm, thanh dàn, cáp, lò xo, bản lề, gối đàn hồi); tấm/vỏ</td><td>Tích hợp sẵn, CalculiX</td></tr>
+<tr><td><b>CFD</b></td><td>2D khoang kín nắp trượt; CFD 3D tầng lưu và rối (k-ε) trên lưới hộp/kênh hoặc lưới tứ diện từ CAD</td><td>Tích hợp sẵn (2D), OpenFOAM (3D)</td></tr>
+<tr><td><b>Hình học và lưới</b></td><td>Nhập STEP/IGES/BREP/XAO/STL, lưới MSH/INP/UNV/BDF/MED/MESH, FreeCAD; hộp/trụ/cầu tham số; chia lưới khối tự động</td><td>Gmsh/OpenCASCADE hoặc đọc thẳng lưới</td></tr>
+<tr><td><b>Tự động hoá</b></td><td>Quét tham số, tối ưu, tổ hợp tải, hội tụ lưới bằng Lua, Python, C++ hoặc dòng lệnh</td><td>Mọi bộ giải</td></tr>
+</table>
+
+<h3>1.2. Những điểm làm nên sức mạnh</h3>
+<ol>
+<li><b>Một giao diện cho nhiều loại phân tích.</b> Kết cấu, nhiệt, CFD, khung/dàn, tấm/vỏ, modal, mất ổn định, phi tuyến, động lực học và tiếp xúc dùng chung một thao tác: đặt bài toán → <b>Chạy (F5)</b>.</li>
+<li><b>Không chặn giao diện khi giải.</b> Bài toán chạy ở luồng nền; bạn vẫn xoay, phóng, đọc giá trị trong lúc chờ. Yêu cầu giải mới trong lúc đang chạy được xếp hàng, quá nhiều phần tử thì báo "Hết bộ nhớ" kèm gợi ý thay vì sập chương trình.</li>
+<li><b>Phần tử bậc 2 mặc định cho bài toán uốn.</b> Tứ diện 10 nút (T10) tránh hiện tượng "cứng quá mức" của tứ diện 4 nút: dầm console T10 lệch chỉ 0,03% so với lý thuyết, còn T4 chỉ đạt khoảng 0,36 lần độ võng đúng.</li>
+<li><b>Nhập CAD thực dụng.</b> Mở thẳng STEP, IGES, BREP, XAO, STL, cùng nhiều định dạng lưới; FastCAE tự quy đổi đơn vị, chia lưới tứ diện bậc 2 và giải. Có thể kéo-thả file vào cửa sổ.</li>
+<li><b>Chọn mặt bằng chuột.</b> Bấm vào một mặt phẳng của vật thể để đặt ngàm, lực, nhiệt độ hoặc nguồn nhiệt; mặt được lưu theo hình học nên đổi cỡ lưới vẫn đúng.</li>
+<li><b>Điều phối solver mã nguồn mở.</b> Bảng <i>Quản lý solver</i> cho biết giấy phép, mức ràng buộc, trạng thái cài đặt của từng solver và chạy chúng trên file đầu vào của bạn. Vì solver chạy như tiến trình riêng, bạn tự chọn phiên bản và FastCAE vẫn giữ giấy phép MIT.</li>
+<li><b>Lập trình tuỳ biến ngay trong phần mềm.</b> Lua nhúng sẵn (không cần cài thêm), Python và C++ qua dòng lệnh; script quét tham số, tối ưu tiết diện, duyệt tổ hợp tải rồi đưa kết quả lên khung 3D.</li>
+<li><b>Kiểm chứng công khai.</b> Mỗi khả năng chính đều được so với lời giải giải tích hoặc dữ liệu chuẩn (xem bảng 1.3 và chương <a href="#kiem-chung">15</a>).</li>
+</ol>
+
+<h3>1.3. Độ chính xác đã kiểm chứng</h3>
+<p>Các con số dưới đây lấy từ bộ kiểm thử đi kèm mã nguồn (<code>ctest</code>, <code>scripts/08_ccx_kiem_chung.lua</code>, <code>scripts/09_openfoam_kiem_chung.lua</code>), đo trên Linux với CalculiX 2.21, OpenFOAM v1912, Gmsh 4.12 và PETSc 3.19.</p>
+<table width="100%" border="1" cellspacing="0" cellpadding="6">
+<tr><th align="left">Bài toán</th><th align="left">Đối chiếu với</th><th align="left">Độ lệch</th></tr>
+<tr><td>Dầm console 3D, tứ diện bậc 2 (T10)</td><td>Lý thuyết dầm</td><td>0,03%</td></tr>
+<tr><td>Dầm I console, khối đặc T10, 2400 tứ diện</td><td>Timoshenko</td><td>0,06%</td></tr>
+<tr><td>Dao động riêng f₁ dầm công xôn (CalculiX)</td><td>Euler–Bernoulli</td><td>0,07%</td></tr>
+<tr><td>Tải tới hạn cột Euler (CalculiX)</td><td>π²EI/(KL)²</td><td>0,43%</td></tr>
+<tr><td>Biến dạng lớn (elastica PL²/EI = 1)</td><td>Lời giải elastica</td><td>0,64%</td></tr>
+<tr><td>Tải áp suất theo mặt, thanh nén</td><td>u = pL/E</td><td>0,09%</td></tr>
+<tr><td>Tiếp xúc hai khối chồng nhau</td><td>Giải tích</td><td>0,41–0,51%</td></tr>
+<tr><td>Dẫn nhiệt quá độ, giữa thanh</td><td>Chuỗi giải tích</td><td>2,85%</td></tr>
+<tr><td>Tấm vuông tựa đơn / ngàm bốn cạnh, vỏ S4 64×64</td><td>Kirchhoff</td><td>+0,5%</td></tr>
+<tr><td>Bồn trụ chịu áp suất trong (vỏ S4)</td><td>pR/t</td><td>+0,2%</td></tr>
+<tr><td>Khung 1D: dao động riêng, mất ổn định</td><td>Công thức giải tích</td><td>dưới 0,3% (tĩnh: khớp đến 1e-6)</td></tr>
+<tr><td>Khoang kín Re = 100, OpenFOAM lưới 41×41</td><td>Ghia et al. 1982</td><td>0,015%</td></tr>
+<tr><td>Kênh tầng lưu 3D (OpenFOAM): u<sub>max</sub> và dp/dx</td><td>Poiseuille</td><td>0,5%</td></tr>
+<tr><td>Ống tròn từ CAD (STEP), lưới tứ diện: dp/dx</td><td>Hagen–Poiseuille</td><td>0,26%</td></tr>
+<tr><td>Rối k-ε trong kênh</td><td>Dean</td><td>4,5%</td></tr>
+<tr><td>Tấm có lỗ từ STEP, von Mises lớn nhất (lưới 1,5 mm)</td><td>Kt ≈ 2,23 → ~46,5 MPa</td><td>45,7 MPa (lưới 3 mm: 42,3 MPa)</td></tr>
+</table>
+
+<table width="100%" cellspacing="0" cellpadding="8"><tr><td class="warn">
+<b>Cần biết để dùng đúng.</b> Đây là phần mềm đang phát triển (phiên bản 1.0.0, chưa phát hành chính thức). Một số tích hợp mới chỉ kiểm tra đường gọi bằng chương trình giả,
+<b>chưa chạy với bản thật</b>: OpenRadioss/OpenCourant, Code_Aster, Elmer, SU2, Code_Saturne, preCICE, Project Chrono, FEniCSx, Kratos.
+Bản dựng giao diện trên Windows và bộ cài Inno Setup cũng chưa được kiểm tra. Chi tiết ở chương <a href="#gioi-han">16</a>.
+Với công trình thực tế, luôn đối chiếu kết quả với tính tay hoặc phần mềm kiểm chứng độc lập trước khi dùng để ra quyết định thiết kế.
+</td></tr></table>
+
+<h3>1.4. Quy trình CAE trong FastCAE</h3>
+<table width="100%" border="1" cellspacing="0" cellpadding="6">
+<tr><th>Bước</th><th align="left">Việc cần làm</th><th align="left">Nằm ở đâu</th></tr>
+<tr><td align="center">1</td><td>Tạo hoặc nhập hình học</td><td>Thẻ <b>Tệp</b> (Nhập CAD, Hình học tham số), thẻ <b>Cấu kiện</b></td></tr>
+<tr><td align="center">2</td><td>Chọn loại phần tử / cỡ lưới</td><td>Thẻ <b>Lưới</b></td></tr>
+<tr><td align="center">3</td><td>Đặt vật liệu</td><td>Nút <b>Vật liệu</b> (thẻ Kết cấu, Nhiệt)</td></tr>
+<tr><td align="center">4</td><td>Đặt liên kết, tải, nhiệt độ</td><td>Thẻ <b>Kết cấu</b>, <b>Nhiệt</b> + chọn mặt bằng chuột</td></tr>
+<tr><td align="center">5</td><td>Giải</td><td>Nút <b>Chạy (F5)</b>, hoặc <b>Chạy bằng CalculiX</b>, <b>OpenFOAM</b>…</td></tr>
+<tr><td align="center">6</td><td>Xem, kiểm tra, xuất kết quả</td><td>Bảng <b>Kết quả</b>, thẻ <b>Kết quả</b>, <b>Xuất VTK</b>, <b>Chụp ảnh</b></td></tr>
+</table>
+
+<!-- ======================================================================= -->
+<h2><a name="bat-dau">2. Bắt đầu nhanh trong 5 phút</a></h2>
+<ol>
+<li><b>Mở FastCAE.</b> Phần mềm tự nạp bài mẫu <i>Dầm console</i> (dầm thép 1,0 × 0,1 × 0,1 m, ngàm tại một đầu, lực 1 kN hướng xuống ở đầu tự do). Nội dung bài toán hiện ở khung <b>Bài toán (case)</b> bên phải.</li>
+<li><b>Bấm Chạy</b> (góc phải thanh thẻ lệnh) hoặc nhấn <b>F5</b>. Thanh tiến trình hiện ở góc phải thanh trạng thái; khi xong, mô hình được tô màu theo trường kết quả.</li>
+<li><b>Xem kết quả.</b> Ở bảng <b>Kết quả</b> (cùng nhóm tab với khung Bài toán): chọn <i>Trường hiển thị</i> (chuyển vị, von Mises…), kéo thanh <i>Phóng đại biến dạng</i>. Bấm chuột trái (không kéo) lên mô hình để đọc giá trị tại nút gần nhất.</li>
+<li><b>Thay đổi bài toán.</b> Hai cách: sửa trực tiếp văn bản trong khung <b>Bài toán</b> rồi nhấn F5; hoặc dùng nút (ví dụ <b>Lực tác dụng</b>), nhập số và bấm OK – FastCAE ghi dòng lệnh vào case và giải lại ngay.</li>
+<li><b>Lưu</b> bằng <b>Ctrl+S</b> thành file <code>.fcae</code>; mở lại bằng <b>Ctrl+O</b>.</li>
+</ol>
+<p><b>Muốn tự lập trình thuật toán FEM/CFD hoặc gọi thư viện bên ngoài?</b> Xem chương <a href="#quy-trinh">18</a> và bài thực hành từng bước ở chương <a href="#bai-thuc-hanh">19</a>.</p>
+<p>Thử các bài mẫu khác ở <b>Tệp ▸ Ví dụ</b>: <i>Dầm console (đàn hồi)</i>, <i>Thanh dẫn nhiệt</i>, <i>Dòng chảy khoang kín (CFD)</i>. Thư mục <code>examples/</code> của bản cài còn có tấm có lỗ từ STEP, khung cổng, dao động riêng của dầm, mất ổn định cột Euler, OpenFOAM khoang kín, PETSc…</p>
+
+<table width="100%" cellspacing="0" cellpadding="8"><tr><td class="note">
+<b>Mẹo.</b> Bấm đúp vào khung 3D để về hướng nhìn mặc định. Nút <b>Vừa khung</b> đưa toàn bộ mô hình vào giữa màn hình. Nếu giải thất bại, xem tab <b>Nhật ký</b> ở phía dưới: thông báo lỗi thường nêu nguyên nhân và gợi ý cách khắc phục.
+</td></tr></table>
+
+<!-- ======================================================================= -->
+<h2><a name="giao-dien">3. Làm quen giao diện</a></h2>
+
+<h3>3.1. Bố cục cửa sổ</h3>
+<table width="100%" border="1" cellspacing="0" cellpadding="6">
+<tr><th align="left">Khu vực</th><th align="left">Chức năng</th></tr>
+<tr><td><b>Thanh menu</b></td><td>Tệp · Mô hình · Giải · Hiển thị · Công cụ · Trợ giúp (mọi lệnh của thanh thẻ cũng có trong menu)</td></tr>
+<tr><td><b>Thanh thẻ lệnh (ribbon)</b></td><td>Các thẻ: <i>Tệp, Cấu kiện, Lưới, Kết cấu, Nhiệt, CFD, Ghép nối, Kết quả, Lập trình, Công cụ</i>. Nút <b>Chạy</b> và <b>Dừng</b> nằm cố định ở góc phải, luôn thấy ở mọi thẻ.</td></tr>
+<tr><td><b>Khung 3D (giữa)</b></td><td>Hiển thị mô hình, lưới, kết quả bằng OpenGL; có thanh màu (bảng màu turbo) và chú thích tác giả.</td></tr>
+<tr><td><b>Cây mô hình (trái)</b></td><td>Hình học · Lưới · Vật liệu · Điều kiện biên/tải · Solver · Kết quả.</td></tr>
+<tr><td><b>Bài toán (case) (phải)</b></td><td>Văn bản bài toán dạng <code>khoá = giá trị</code>. Sửa tại đây rồi nhấn F5 là giải với nội dung mới nhất.</td></tr>
+<tr><td><b>Kết quả (phải)</b></td><td>Tóm tắt (chuyển vị lớn nhất, von Mises lớn nhất, số vòng CG…), chọn trường hiển thị, thanh phóng đại biến dạng, bật/tắt cạnh lưới.</td></tr>
+<tr><td><b>Nhật ký / Solver ngoài / Lập trình (dưới)</b></td><td>Nhật ký của lần giải; đầu ra của solver chạy ngoài (OpenFOAM, SU2…); bảng lập trình Lua/Python/C++.</td></tr>
+<tr><td><b>Thanh trạng thái</b></td><td>Gợi ý thao tác, tiến trình giải, thông tin mặt đang chọn.</td></tr>
+</table>
+<p>Mọi khung dock có thể kéo rời, xếp tab hoặc ẩn/hiện ở menu <b>Hiển thị</b>.</p>
+
+<h3>3.2. Các thẻ lệnh</h3>
+<table width="100%" border="1" cellspacing="0" cellpadding="6">
+<tr><th align="left">Thẻ</th><th align="left">Nhóm lệnh</th></tr>
+<tr><td><b>Tệp</b></td><td>Ví dụ · Mở · Lưu · Nhập CAD · Hình học tham số · Xuất VTK · Chụp ảnh</td></tr>
+<tr><td><b>Cấu kiện</b></td><td>Thư viện cấu kiện (Dầm &amp; cột, Tấm &amp; vỏ, Tường &amp; móng, Dàn &amp; khung) · Dựng khung/dàn 1D (Thêm nút, Tiết diện, Thêm thanh, Liên kết nút, Tải tại nút, Tải phân bố) · Loại phân tích khung (Tĩnh, Dao động riêng, Mất ổn định, Chọn dạng)</td></tr>
+<tr><td><b>Lưới</b></td><td>Tứ diện 4 nút (T4) · Tứ diện 10 nút (T10) · Hiện cạnh lưới · Thông tin lưới</td></tr>
+<tr><td><b>Kết cấu</b></td><td>Vật liệu · Chọn mặt bằng chuột · Liên kết (ngàm) · Lực tác dụng · Chạy FEM nội bộ · Chạy bằng CalculiX · Giải bằng PETSc · Code_Aster, Elmer, FEniCSx, Kratos</td></tr>
+<tr><td><b>Nhiệt</b></td><td>Vật liệu · Chọn mặt · Nhiệt độ cưỡng bức · Nguồn nhiệt · Chạy dẫn nhiệt dừng · PETSc</td></tr>
+<tr><td><b>CFD</b></td><td>Khoang kín 2D nội bộ · OpenFOAM khoang kín · SU2 · Code_Saturne</td></tr>
+<tr><td><b>Ghép nối</b></td><td>OpenRadioss · OpenCourant · Project Chrono · preCICE</td></tr>
+<tr><td><b>Kết quả</b></td><td>Hướng nhìn (Đẳng cự, Trước, Phải, Trên, Sau, Trái, Dưới) · Vừa khung · Cạnh lưới · Đọc giá trị · Chọn mặt · Xuất VTK · Chụp ảnh</td></tr>
+<tr><td><b>Lập trình</b></td><td>Bảng lập trình · Chạy · Dừng · Mở/Lưu script · Ví dụ script · Hàm lập trình (API)</td></tr>
+<tr><td><b>Công cụ</b></td><td>Quản lý solver · Giấy phép · Giao diện sáng/tối · Hướng dẫn sử dụng · Năng lực CAE · Giới thiệu &amp; Tác giả</td></tr>
+</table>
+
+<h3>3.3. Thao tác chuột trong khung 3D</h3>
+<table width="100%" border="1" cellspacing="0" cellpadding="6">
+<tr><th align="left">Thao tác</th><th align="left">Tác dụng</th></tr>
+<tr><td>Kéo chuột trái</td><td>Xoay mô hình</td></tr>
+<tr><td>Kéo chuột phải hoặc chuột giữa</td><td>Dịch (pan)</td></tr>
+<tr><td>Lăn con lăn</td><td>Phóng to / thu nhỏ</td></tr>
+<tr><td>Bấm chuột trái, không kéo</td><td>Đọc giá trị tại nút gần nhất (hoặc chọn mặt khi đang ở chế độ <i>Chọn mặt</i>)</td></tr>
+<tr><td>Bấm đúp</td><td>Về hướng nhìn mặc định</td></tr>
+<tr><td>Esc</td><td>Bỏ chọn mặt</td></tr>
+</table>
+
+<h3>3.4. Giao diện sáng/tối</h3>
+<p>Chọn <b>Công cụ ▸ Giao diện sáng</b> hoặc <b>Giao diện tối</b> (cũng có trong menu Hiển thị); lựa chọn được nhớ cho lần mở sau. Dòng lệnh: <code>fastcae --theme light</code>.</p>
+
+<!-- ======================================================================= -->
+<h2><a name="hinh-hoc">4. Hình học và nhập CAD</a></h2>
+
+<h3>4.1. Mở file</h3>
+<p><b>Tệp ▸ Mở</b> (<b>Ctrl+O</b>) hoặc <b>kéo-thả</b> file vào cửa sổ. FastCAE nhận ra loại file theo đuôi:</p>
+<ul>
+<li><code>.fcae</code>, <code>.txt</code> – bài toán FastCAE;</li>
+<li>CAD và lưới (bảng 4.3) – mở như nhập CAD;</li>
+<li><code>.vtk</code> – kết quả của solver ngoài, đưa lên khung 3D;</li>
+<li><code>.lua</code>, <code>.py</code>, <code>.cpp</code> – nạp vào bảng lập trình.</li>
+</ul>
+
+<h3>4.2. Nhập CAD (Tệp ▸ Nhập CAD)</h3>
+<ol>
+<li>Chọn file CAD hoặc lưới.</li>
+<li>Chọn <b>đơn vị của file</b>: mm, cm, m hoặc inch (STEP vẽ bằng mm → chọn mm; FastCAE quy đổi sang mét).</li>
+<li>Với file hình học: nhập <b>cỡ phần tử tối đa (mm)</b>, <code>0</code> = tự động. Với file đã là lưới thì không hỏi bước này.</li>
+</ol>
+<p>FastCAE ghi vào bài toán các dòng <code>geometry = file …</code>, <code>unit_scale</code>, <code>order = 2</code>, <code>mesh_size</code>, rồi chia lưới và giải ngay. Lưới vượt quá giới hạn phần tử sẽ bị từ chối kèm gợi ý tăng cỡ lưới.</p>
+
+<h3>4.3. Định dạng được hỗ trợ</h3>
+<table width="100%" border="1" cellspacing="0" cellpadding="6">
+<tr><th align="left">Nhóm</th><th align="left">Đuôi file</th><th align="left">Cần gì</th></tr>
+<tr><td>Hình học B-Rep</td><td><code>.step .stp .iges .igs .brep .brp .xao</code></td><td>Gmsh (thư viện hoặc <code>gmsh</code> ngoài); FastCAE tự chia lưới khối</td></tr>
+<tr><td>Lưới bề mặt</td><td><code>.stl</code></td><td>Gmsh; STL phải <b>kín</b>, FastCAE dựng khối rồi chia lưới</td></tr>
+<tr><td>Lưới khối đọc thẳng</td><td><code>.msh</code> (ASCII 2.2/4.1), <code>.inp</code> (Abaqus/CalculiX)</td><td>Không cần Gmsh</td></tr>
+<tr><td>Lưới khối khác</td><td><code>.unv .bdf .nas .med .mesh</code>, <code>.msh</code> nhị phân</td><td>Gmsh</td></tr>
+<tr><td>FreeCAD</td><td><code>.FCStd</code></td><td><code>freecadcmd</code> trong PATH (hoặc biến <code>FASTCAE_FREECAD</code>)</td></tr>
+<tr><td>Định dạng đóng</td><td><code>.sldprt .ipt .CATPart .prt .f3d .dwg .x_t</code>…</td><td>Không đọc trực tiếp (xem dưới)</td></tr>
+</table>
+<p>Phần tử trong lưới có sẵn có thể là tứ diện (4 hoặc 10 nút), lục diện, lăng trụ, tháp (tuyến tính hoặc bậc 2); FastCAE cắt lục diện/lăng trụ/tháp thành tứ diện liên tục rồi giải bình thường. Lưới chỉ có phần tử bề mặt/vỏ/dầm bị từ chối kèm giải thích.</p>
+<table width="100%" cellspacing="0" cellpadding="8"><tr><td class="note">
+<b>File từ SolidWorks, Inventor, CATIA, NX/Creo, Fusion, AutoCAD:</b> trong phần mềm gốc chọn <i>Save As / Export → STEP (AP214 hoặc AP242)</i> rồi nhập file STEP. Nếu bạn có bộ chuyển đổi riêng, đặt biến môi trường <code>FASTCAE_CAD_CONVERTER</code> thành lệnh có <code>{in}</code> và <code>{out}</code> (<code>{out}</code> là file <code>.step</code>) để mở thẳng định dạng gốc.
+Trên dòng lệnh, <code>fastcae-cli formats</code> cho biết máy bạn đang dùng được những đường nhập nào.
+</td></tr></table>
+
+<h3>4.4. Hình học tham số</h3>
+<p><b>Tệp ▸ Hình học tham số</b> (hoặc <b>Mô hình ▸ Hình học tham số</b>) tạo nhanh ba loại hình:</p>
+<ul>
+<li><b>Khối hộp</b> – dài X, rộng Y, cao Z và số chia lưới theo từng phương (không cần Gmsh);</li>
+<li><b>Trụ tròn</b> – bán kính, chiều dài (cần Gmsh/OpenCASCADE);</li>
+<li><b>Cầu</b> – bán kính (cần Gmsh/OpenCASCADE).</li>
+</ul>
+<p>Hộp thoại ghi dòng <code>geometry</code> (và <code>divisions</code> hoặc <code>mesh_size</code>) vào bài toán rồi giải lại.</p>
+
+<h3>4.5. Xuất file</h3>
+<ul>
+<li><b>Xuất VTK</b> – kết quả <code>.vtk</code> để mở bằng ParaView hoặc phần mềm khác (không bắt buộc, FastCAE tự hiển thị được).</li>
+<li><b>Chụp ảnh</b> – lưu khung nhìn 3D thành ảnh PNG.</li>
+<li><b>Mở kết quả (.vtk)</b> ở menu Tệp – đưa kết quả của solver ngoài lên khung 3D (chương <a href="#ket-qua">11</a>).</li>
+</ul>
+
+<!-- ======================================================================= -->
+<h2><a name="luoi">5. Chia lưới và loại phần tử</a></h2>
+<table width="100%" border="1" cellspacing="0" cellpadding="6">
+<tr><th align="left">Loại</th><th align="left">Đặc điểm</th><th align="left">Khi nào dùng</th></tr>
+<tr><td><b>T4</b> – tứ diện 4 nút (bậc 1)</td><td>Nhanh, ít bộ nhớ, nhưng cứng quá mức khi uốn (dầm console cho độ võng chỉ ~0,36 lần đúng)</td><td>Kéo/nén đều, bài toán nhiệt, khảo sát nhanh</td></tr>
+<tr><td><b>T10</b> – tứ diện 10 nút (bậc 2)</td><td>Chính xác hơn nhiều khi uốn và quanh chỗ tập trung ứng suất; nút giữa cạnh trùng thứ tự CalculiX C3D10</td><td><b>Khuyên dùng</b>; mặc định khi nhập CAD</td></tr>
+</table>
+<ul>
+<li>Chọn loại phần tử ở thẻ <b>Lưới</b> (<i>Tứ diện 4 nút</i> / <i>Tứ diện 10 nút</i>); tương ứng khoá <code>order = 1</code> hoặc <code>order = 2</code>. Chỉ áp dụng cho bài toán kết cấu và nhiệt.</li>
+<li><b>Thông tin lưới</b> cho số nút, số phần tử, thể tích và hộp bao.</li>
+<li><b>Hiện cạnh lưới</b> bật/tắt viền phần tử (cũng có ở bảng Kết quả và thẻ Kết quả).</li>
+<li>Cỡ lưới: với hộp dùng <code>divisions = nx ny nz</code>; với trụ, cầu, file CAD dùng <code>mesh_size</code> (<b>mét</b>, 0 = tự động) cùng <code>unit_scale</code> (STEP mm → <code>0.001</code>).</li>
+</ul>
+<table width="100%" cellspacing="0" cellpadding="8"><tr><td class="note">
+<b>Kiểm tra hội tụ lưới.</b> Làm mịn lưới và chạy lại cho tới khi đại lượng bạn quan tâm thôi thay đổi. Ví dụ tấm có lỗ: von Mises lớn nhất 42,3 MPa ở lưới 3 mm, 45,7 MPa ở lưới 1,5 mm, lý thuyết khoảng 46,5 MPa. Ứng suất đỉnh hội tụ chậm hơn chuyển vị; chuyển vị là thước đo ổn định hơn.
+</td></tr></table>
+
+<!-- ======================================================================= -->
+<h2><a name="ket-cau">6. Phân tích kết cấu</a></h2>
+
+<h3>6.1. Quy trình</h3>
+<ol>
+<li>Tạo/nhập hình học và chọn loại phần tử (chương 4–5).</li>
+<li><b>Vật liệu</b>: nhập mô đun đàn hồi <i>E</i> (Pa), hệ số Poisson <i>ν</i>, khối lượng riêng <i>ρ</i> (kg/m³) và hệ số dẫn nhiệt <i>k</i> (W/m·K). Mặc định thép: E = 2,1e11 Pa, ν = 0,3, ρ = 7850.</li>
+<li>Đặt <b>liên kết</b> và <b>lực</b> (mục 6.2).</li>
+<li>Bấm <b>Chạy FEM (nội bộ)</b> hoặc <b>Chạy bằng CalculiX</b>.</li>
+<li>Đọc <b>chuyển vị</b>, <b>von Mises</b>… ở bảng Kết quả.</li>
+</ol>
+<p>Đơn vị luôn là SI: mét, newton, pascal, kilôgam, giây.</p>
+
+<h3>6.2. Chọn mặt bằng chuột và đặt điều kiện biên</h3>
+<ol>
+<li>Bấm <b>Chọn mặt bằng chuột</b> (thẻ Kết cấu, Nhiệt hoặc Kết quả).</li>
+<li>Bấm lên một <b>mặt phẳng</b> của vật thể: mọi tam giác biên cùng mặt phẳng được tô cam; thanh trạng thái hiện pháp tuyến, số tam giác và diện tích. Bấm ra ngoài vật thể hoặc nhấn <b>Esc</b> để bỏ chọn.</li>
+<li>Bấm <b>Liên kết (ngàm)</b>, <b>Lực tác dụng</b>, <b>Nhiệt độ cưỡng bức</b> hoặc <b>Nguồn nhiệt</b>. Mục đầu của ô <i>Mặt / tập nút</i> chính là mặt vừa chọn; có thể gõ hoặc chọn tập nút theo hộp bao: <code>xmin xmax ymin ymax zmin zmax all</code>.</li>
+</ol>
+<table width="100%" border="1" cellspacing="0" cellpadding="6">
+<tr><th align="left">Lệnh</th><th align="left">Hộp thoại</th><th align="left">Dòng ghi vào case</th></tr>
+<tr><td>Liên kết (ngàm)</td><td>Tích chọn khoá X, Y, Z (cả ba = ngàm cứng)</td><td><code>fix = xmin</code> hoặc <code>fix = ymin y</code></td></tr>
+<tr><td>Lực tác dụng</td><td>Fx, Fy, Fz <b>tổng</b> (N), phân bố theo diện tích phụ trách</td><td><code>load = xmax 0 0 -1000</code></td></tr>
+<tr><td>Nhiệt độ cưỡng bức</td><td>Nhiệt độ</td><td><code>temp = xmin 100</code></td></tr>
+<tr><td>Nguồn nhiệt</td><td>Công suất tổng (W)</td><td><code>heat = xmax 50</code></td></tr>
+</table>
+<p>Mặt chọn bằng chuột được ghi dưới dạng tập nút hình học, không phụ thuộc lưới:</p>
+<pre>nodeset = face1 plane nx ny nz d tol    # mặt phẳng n·x = d, dung sai tuyệt đối tol (m)
+fix  = face1
+load = face1 0 0 -2000</pre>
+<p><b>Giới hạn:</b> chỉ chọn được mặt <i>phẳng</i> (chưa chọn mặt trụ/cong, cạnh hay điểm). Mọi mặt biên cùng nằm trên mặt phẳng đó đều được chọn, kể cả các phần tách rời. Mặt phẳng chỉ cắt xuyên bên trong vật thể thì không chọn nút nào và bài toán báo "Tập nút không hợp lệ".</p>
+
+<h3>6.3. Bộ giải tuyến tính và chạy nền</h3>
+<ul>
+<li><b>Chạy (F5)</b> giải ở luồng nền; thanh tiến trình hiện ở thanh trạng thái, vẫn thao tác được khung nhìn.</li>
+<li>Bộ giải tuyến tính mặc định tự chọn Cholesky trực tiếp hoặc CG tiền điều kiện Jacobi (OpenMP). <b>Giải bằng PETSc</b> chuyển sang CG + ICC của PETSc (<code>linear_solver = petsc</code>); trên tấm có lỗ T10 (23 nghìn nút) PETSc cần 446 vòng lặp so với 1623 vòng của CG tự viết. Bản FastCAE không build kèm PETSc sẽ báo rõ.</li>
+</ul>
+
+<h3>6.4. Mở rộng bằng CalculiX</h3>
+<p>Bấm <b>Chạy bằng CalculiX</b> (hoặc đặt <code>solver = calculix</code>): FastCAE ghi file <code>.inp</code>, chạy <code>ccx</code> rồi đọc <code>.frd</code> (chuyển vị, ứng suất). Nếu chưa có <code>ccx</code>, FastCAE vẫn ghi <code>.inp</code> và báo đường dẫn để bạn chạy tay; đặt đường dẫn ở <b>Công cụ ▸ Quản lý solver</b>, biến <code>FASTCAE_CCX</code> hoặc khoá <code>ccx_path</code>.</p>
+<p>Thêm khoá <code>analysis</code> vào case để chọn loại phân tích:</p>
+<table width="100%" border="1" cellspacing="0" cellpadding="6">
+<tr><th align="left"><code>analysis</code></th><th align="left">Nội dung</th><th align="left">Khoá đi kèm</th></tr>
+<tr><td><code>static</code> (mặc định)</td><td>Tĩnh tuyến tính</td><td>—</td></tr>
+<tr><td><code>frequency</code></td><td>Dao động riêng</td><td><code>modes</code>, <code>mode</code> (dạng hiển thị)</td></tr>
+<tr><td><code>buckle</code></td><td>Mất ổn định tuyến tính; tải tới hạn = hệ số × tải đã khai báo</td><td><code>modes</code></td></tr>
+<tr><td><code>nlstatic</code></td><td>Biến dạng lớn (NLGEOM)</td><td><code>increments</code></td></tr>
+<tr><td><code>plastic</code></td><td>Dẻo, hoá bền tuyến tính</td><td><code>yield</code>, <code>hardening</code> (Pa), <code>nlgeom</code></td></tr>
+<tr><td><code>dynamic</code></td><td>Động lực học ngầm theo thời gian</td><td><code>time</code>, <code>increments</code>, <code>gravity</code></td></tr>
+<tr><td><code>thermal_stress</code></td><td>Ứng suất nhiệt</td><td><code>alpha</code>, <code>t0</code>, <code>temp = &lt;tập&gt; T</code></td></tr>
+<tr><td><code>contact</code></td><td>Tiếp xúc không ma sát nhiều vật thể</td><td><code>contact</code>, <code>body</code>, <code>adjust</code>, <code>stiffness</code></td></tr>
+</table>
+<pre>type = elastic
+solver = calculix
+analysis = frequency
+modes = 6
+geometry = box 1.0 0.1 0.1
+divisions = 20 3 3
+order = 2
+fix = xmin</pre>
+<p><b>Tải áp suất theo mặt</b>: <code>pressure = &lt;tập nút&gt; p</code> (Pa, <b>dương = nén vào mặt</b>), lặp được; chỉ với CalculiX.
+<b>Kết quả</b> thêm: tần số riêng (<code>values.frequency_k_hz</code>), hệ số mất ổn định, lịch sử chuyển vị, <code>plastic_strain</code>, <code>contact_pressure</code>…</p>
+<table width="100%" cellspacing="0" cellpadding="8"><tr><td class="warn">
+<b>Giới hạn của tiếp xúc.</b> (1) Tiếp xúc không ma sát không giữ khối theo phương ngang: <b>bắt buộc</b> có điều kiện đối xứng/giữ ngang (ví dụ <code>fix = xmin x</code>, <code>fix = ymin y</code>), nếu không ma trận suy biến. (2) Khe hở lớn tự đóng dưới tải chưa chạy được: đặt hai vật chạm nhau hoặc dùng <code>adjust</code> ≥ khe hở. (3) Chưa có ma sát (bị từ chối kèm thông báo). Chưa hỗ trợ vật liệu dị hướng/siêu đàn hồi, vỏ/dầm/tấm phi tuyến.
+</td></tr></table>
+
+<h3>6.5. Kết cấu nhiều vật thể</h3>
+<pre>body = box lx ly lz at ox oy oz [div nx ny nz]     # thêm vật thể (không chung nút)
+nodeset = ten plane nx ny nz d tol body k           # tập nút riêng từng vật thể (k = 1 cho geometry, 2, 3… cho body)
+contact = slave master [stiffness K] [adjust d]</pre>
+
+<!-- ======================================================================= -->
+<h2><a name="nhiet">7. Truyền nhiệt</a></h2>
+<ol>
+<li>Mở bài mẫu <b>Tệp ▸ Ví dụ ▸ Thanh dẫn nhiệt</b> (<code>type = thermal</code>) hoặc đổi <code>type</code> trong case.</li>
+<li>Đặt vật liệu (cần hệ số dẫn nhiệt <i>k</i>).</li>
+<li>Đặt <b>Nhiệt độ cưỡng bức</b> (<code>temp = mặt T</code>) và/hoặc <b>Nguồn nhiệt</b> (<code>heat = mặt Q</code>, tổng công suất W).</li>
+<li>Bấm <b>Chạy dẫn nhiệt dừng</b>. Kết quả: trường nhiệt độ, tóm tắt T<sub>max</sub>/T<sub>min</sub>.</li>
+</ol>
+<ul>
+<li>Bộ giải tích hợp: dẫn nhiệt dừng bằng T4 hoặc T10, tái tạo chính xác nghiệm tuyến tính.</li>
+<li><b>Dẫn nhiệt quá độ</b> và <b>ứng suất nhiệt</b>: dùng <code>solver = calculix</code> với <code>analysis = heat_transient</code> (<code>time</code>, <code>increments</code>, <code>t0</code>, <code>cp</code>, <code>rho</code>) hoặc <code>thermal_stress</code> (<code>alpha</code>, <code>t0</code>). Kiểm chứng: giữa thanh lệch 2,85% so với chuỗi giải tích; giãn nở tự do lệch 1,0%.</li>
+</ul>
+
+<!-- ======================================================================= -->
+<h2><a name="cfd">8. Cơ học chất lưu (CFD)</a></h2>
+
+<h3>8.1. CFD 2D tích hợp: khoang kín nắp trượt</h3>
+<p>Thẻ <b>CFD ▸ Khoang kín 2D (nội bộ)</b>: giải hàm dòng–xoáy trên lưới ô vuông (sai phân trung tâm, SOR, biên xoáy Thom). Tham số trong case: <code>n</code> (số ô), <code>Re</code>, <code>lid_speed</code>, <code>max_steps</code>. Re = 100, lưới 41×41 cho u(0,5; 0,5) ≈ −0,204 so với −0,2058 của Ghia et al. (1982).</p>
+
+<h3>8.2. OpenFOAM khoang kín</h3>
+<p><b>CFD ▸ OpenFOAM khoang kín</b>: hỏi số ô mỗi cạnh và số Reynolds, ghi case vào thư mục làm việc, chạy <code>blockMesh</code>, <code>icoFoam</code>, <code>foamToVTK</code> rồi hiển thị vận tốc, áp suất, xoáy. Log nằm trong thư mục case (<code>log.blockMesh</code>, <code>log.icoFoam</code>); đầu ra hiện ở tab <b>Solver ngoài</b>. Cần cài OpenFOAM (Linux, hoặc WSL trên Windows); FastCAE tự nạp <code>etc/bashrc</code> nếu tìm thấy, hoặc đặt <code>openfoam_bashrc</code>. Kết quả đã kiểm chứng: Re = 100, lưới 41×41 lệch 0,015% so với Ghia.</p>
+
+<h3>8.3. CFD 3D bằng OpenFOAM (<code>type = cfd3d</code>)</h3>
+<pre>type = cfd3d
+solver = openfoam
+geometry = box 10 1 0.5          # m   (hoặc: file mo_hinh.step)
+divisions = 100 20 2
+nu_kin = 0.1                     # độ nhớt động học m²/s
+inlet_velocity = 1 0 0
+bc_xmin = inlet                  # inlet | outlet | wall | symmetry | slip
+bc_xmax = outlet
+bc_zmin = symmetry
+bc_zmax = symmetry
+model = laminar                  # laminar | kepsilon | komegasst
+transient = off                  # on: pimpleFoam (end_time, dt); off: simpleFoam (max_iter)</pre>
+<ul>
+<li>Mặc định: <code>xmin = inlet</code>, <code>xmax = outlet</code>, các mặt còn lại là tường.</li>
+<li><b>CFD từ CAD</b> (<code>geometry = file x.step</code>, <code>mesh_size</code>, <code>unit_scale</code>): FastCAE chia lưới tứ diện bằng Gmsh rồi ghi <code>polyMesh</code> trực tiếp; sáu mặt của hộp bao nhận diện theo hình học và gán bằng <code>bc_xmin … bc_zmax</code>, mọi mặt còn lại thuộc patch <code>walls</code> (<code>bc_other = wall | symmetry | slip</code>). Chạy <code>checkMesh</code> để chẩn đoán. Ví dụ: <code>examples/cad/pipe_d1_l10.step</code>.</li>
+<li>Kết quả: <code>speed</code>, <code>pressure</code>, <code>velocity</code> (thêm <code>k</code>, <code>nut</code> khi rối), <code>max_speed</code>, <code>p_min</code>, <code>p_max</code>, <code>mass_imbalance</code>.</li>
+<li>Đã kiểm chứng với OpenFOAM v1912: kênh tầng lưu lệch 0,5%, rối k-ε lệch 4,5% so với Dean, ống từ CAD lệch 0,26%.</li>
+</ul>
+<table width="100%" cellspacing="0" cellpadding="8"><tr><td class="warn">
+<b>Chưa có trong CFD:</b> lớp biên lăng trụ, nhiều vật thể, <code>snappyHexMesh</code>, nhiệt–dòng (buoyant), đa pha, ghép FSI. Mô hình k-ω SST mới chỉ ghi case, chưa chạy kiểm chứng. Các bản OpenFOAM khác v1912 (Foundation, ESI ≥ v2012) chưa thử. CFD tích hợp sẵn chỉ là 2D khoang kín; CFD 3D luôn chạy qua OpenFOAM.
+</td></tr></table>
+
+<!-- ======================================================================= -->
+<h2><a name="cau-kien">9. Thư viện cấu kiện và khung/dàn 1D</a></h2>
+<p>Thẻ <b>Cấu kiện</b> dành cho kỹ sư kết cấu công trình: chọn loại, nhập kích thước, bấm <b>Tạo mô hình</b>. FastCAE tạo file case hoàn chỉnh (hình học, vật liệu, liên kết, tải mặc định) và giải ngay; bạn tiếp tục chỉnh trong khung Bài toán.</p>
+
+<h3>9.1. Các nhóm cấu kiện</h3>
+<table width="100%" border="1" cellspacing="0" cellpadding="6">
+<tr><th align="left">Nhóm</th><th align="left">Có gì</th><th align="left">Mô hình hoá</th></tr>
+<tr><td><b>Dầm &amp; cột</b></td><td>Dầm thép chữ I, U, L, T; ống thép chữ nhật</td><td>Khối đặc 3D (T10), dầm công xôn, ngàm tại x = 0</td></tr>
+<tr><td><b>Tấm &amp; vỏ</b></td><td>Tấm chữ nhật, tấm có lỗ vuông (khối đặc); tấm vuông tựa đơn/ngàm, tấm công xôn, bồn trụ chịu áp suất (vỏ S4)</td><td>Khối đặc hoặc vỏ S4 bằng CalculiX</td></tr>
+<tr><td><b>Tường &amp; móng</b></td><td>Tường/vách, móng đơn + cổ cột, tường chắn đất chữ T ngược</td><td>Khối đặc</td></tr>
+<tr><td><b>Dàn &amp; khung</b></td><td>Dầm đơn giản, dầm công xôn, khung cổng, khung nhiều tầng nhiều nhịp, dàn Warren, dàn Pratt, dàn mái tam giác</td><td>Khung/dàn 1D tự viết</td></tr>
+</table>
+
+<h3>9.2. Dựng khung/dàn 1D bằng nút lệnh</h3>
+<p>Nhóm <b>Dựng khung / dàn 1D</b> (chỉ dùng khi bài toán là khung/dàn; nếu không FastCAE nhắc mở một khung mẫu từ Cấu kiện ▸ Dàn &amp; khung):</p>
+<ol>
+<li><b>Thêm nút</b> – toạ độ (m), trục Z hướng lên.</li>
+<li><b>Tiết diện</b> – <code>rect b h</code> · <code>circle d</code> · <code>pipe d t</code> · <code>ibeam b h tf tw</code> · <code>box b h t</code> · <code>general A Iy Iz J</code>.</li>
+<li><b>Thêm thanh</b> – nối hai nút bằng <code>beam</code> (chịu uốn), <code>truss</code> (chỉ dọc trục), <code>cable</code> (chỉ chịu kéo) hoặc <code>spring</code> (độ cứng k, N/m); có thể đặt bản lề ở đầu hoặc cuối thanh.</li>
+<li><b>Liên kết nút</b> – <code>fixed</code> (ngàm), <code>pinned</code> (gối cố định) hoặc liệt kê bậc tự do bị khoá (ví dụ gối con lăn: <code>z</code>).</li>
+<li><b>Tải tại nút</b> – lực (N) và mômen (N·m) trong hệ chung.</li>
+<li><b>Tải phân bố</b> – tải đều lên thanh (N/m).</li>
+</ol>
+<p>Chọn loại phân tích: <b>Phân tích tĩnh</b>, <b>Dao động riêng</b>, <b>Mất ổn định (Euler)</b>; <b>Chọn dạng</b> để đổi dạng dao động hoặc dạng mất ổn định đang hiển thị trong khung 3D.</p>
+
+<h3>9.3. File khung/dàn (<code>type = frame</code>)</h3>
+<pre>type = frame
+E = 210e9
+nu = 0.3
+rho = 7850
+yield = 235e6                        # tuỳ chọn: tính hệ số sử dụng σ/fy
+node = 1 0 0 0                       # id x y z (m)
+node = 2 6 0 0
+section = IPE ibeam 0.15 0.30 0.0107 0.0071
+member = 1 2 IPE beam                # beam | truss | cable | spring k ; thêm pin1 pin2 cho bản lề
+support = 1 fixed
+nload = 2 0 0 -5000                  # Fx Fy Fz [Mx My Mz]
+udl = 1 0 0 -10000                   # thanh số 1: qx qy qz (N/m)
+gravity = 9.81                       # trọng lượng bản thân, hướng -Z
+nmass = 2 500                        # khối lượng tập trung (dao động riêng)
+analysis = static                    # static | modal | buckling
+modes = 6</pre>
+<p><b>Kết quả:</b> chuyển vị, phản lực, nội lực (N, V, T, M), ứng suất pháp lớn nhất, hệ số sử dụng, cáp chùng. Chọn trường <code>bending_moment</code>, <code>axial_force</code>, <code>shear_force</code>, <code>normal_stress</code> hoặc <code>utilization</code> ở bảng Kết quả để xem biểu đồ nội lực trên khung 3D. Thêm <code>report = noi_luc.csv</code> để xuất bảng nội lực từng thanh.</p>
+
+<h3>9.4. Tấm và vỏ (<code>type = shell</code>, cần CalculiX)</h3>
+<pre>type = shell
+geometry = shell_plate Lx Ly t nx ny        # hoặc shell_cylinder R L t nc nl
+fix = xmin x y z                            # chỉ khoá chuyển vị (tựa đơn); không ghi bậc tự do = khoá cả 6
+pressure = 1000                             # Pa</pre>
+<p>Chỉ có tấm chữ nhật và vỏ trụ (lưới cấu trúc), phần tử S4. Ứng suất tại biên ngàm hội tụ chậm theo lưới; hãy dùng chuyển vị làm thước đo chính hoặc làm mịn lưới.</p>
+
+<h3>9.5. Giới hạn của thư viện cấu kiện</h3>
+<ul>
+<li>Mô hình tuyến tính, biến dạng nhỏ. Chưa mô hình bu lông có dự ứng lực, mối hàn chi tiết, vật liệu cao su, composite nhiều lớp, nền đất liên tục (chỉ có gối lò xo rời rạc <code>ksupport</code>).</li>
+<li>Mất ổn định và dao động riêng của <i>khung 1D</i> dùng bộ giải tích hợp; của khối đặc dùng CalculiX (<code>analysis = buckle / frequency</code>).</li>
+<li>Mất ổn định là tuyến tính (Euler): không xét khuyết tật ban đầu, mất ổn định cục bộ của cánh/bụng hay phi tuyến sau mất ổn định.</li>
+<li>Khối đặc nên có ít nhất một phần tử qua bề dày và dùng <code>order = 2</code>.</li>
+</ul>
+
+<!-- ======================================================================= -->
+<h2><a name="solver-ngoai">10. Solver mã nguồn mở bên ngoài</a></h2>
+<p>FastCAE điều phối solver như <b>tiến trình ngoài</b>: ghi file đầu vào → chạy → đọc kết quả. Cách này cho phép bạn tự cài và nâng cấp solver, đồng thời giữ FastCAE ở giấy phép MIT dù solver là GPL hoặc AGPL.</p>
+
+<p class="dim">Solver của riêng bạn (chương trình tự viết, thư viện chưa có cầu nối) khai báo bằng file <code>.fsolver</code>: xem chương <a href="#quy-trinh">18</a>.</p>
+
+<h3>10.1. Bảng Quản lý solver</h3>
+<p>Mở bằng <b>Công cụ ▸ Quản lý solver</b> hoặc bấm tên solver ở các thẻ Kết cấu, CFD, Ghép nối. Bảng liệt kê từng solver với giấy phép, mức ràng buộc, cách tích hợp và trạng thái cài đặt.</p>
+<ul>
+<li><b>Nhóm</b> – lọc theo FEM, CFD, động lực học/va chạm, ghép nối, thư viện.</li>
+<li><b>Đặt đường dẫn chương trình…</b> – chỉ tới thư mục hoặc file chạy của solver (nhớ cho lần sau và áp dụng cho mọi luồng chạy).</li>
+<li><b>Chạy trên file input…</b> – chọn file đầu vào của solver rồi chạy; đầu ra hiện ở tab <b>Solver ngoài</b>, bấm <b>Dừng</b> để ngắt.</li>
+<li><b>Trang chủ</b> – mở trang dự án của solver.</li>
+</ul>
+
+<h3>10.2. Mức độ tích hợp hiện tại</h3>
+<table width="100%" border="1" cellspacing="0" cellpadding="6">
+<tr><th align="left">Solver</th><th align="left">Dùng cho</th><th align="left">Trạng thái</th></tr>
+<tr><td><b>CalculiX</b></td><td>Kết cấu phi tuyến, nhiệt, modal, tiếp xúc, tấm/vỏ</td><td>Đã chạy thật (ccx 2.21)</td></tr>
+<tr><td><b>OpenFOAM</b></td><td>CFD 2D khoang kín và CFD 3D</td><td>Đã chạy thật (v1912)</td></tr>
+<tr><td><b>Gmsh</b></td><td>Chia lưới, nhập CAD</td><td>Đã chạy thật (4.12)</td></tr>
+<tr><td><b>PETSc</b></td><td>Bộ giải tuyến tính</td><td>Đã chạy thật (3.19)</td></tr>
+<tr><td>OpenRadioss / OpenCourant</td><td>Va chạm, động lực học tường minh</td><td>Mới kiểm tra đường gọi bằng chương trình giả</td></tr>
+<tr><td>Code_Aster, Elmer, SU2, Code_Saturne</td><td>FEM công nghiệp, đa vật lý, CFD</td><td>Mới kiểm tra đường gọi bằng chương trình giả</td></tr>
+<tr><td>preCICE, Project Chrono, FEniCSx, Kratos</td><td>Ghép nối, đa vật thể, FEM tuỳ biến</td><td>Chưa thử với bản thật</td></tr>
+</table>
+<table width="100%" cellspacing="0" cellpadding="8"><tr><td class="note">
+<b>Về giấy phép.</b> Hãy xem thẻ <i>Thành phần bên thứ ba</i> trong <b>Trợ giúp ▸ Giới thiệu &amp; Tác giả</b>. Nếu bạn <b>đóng gói kèm</b> solver GPL/AGPL vào bộ cài, bạn phải tuân điều khoản phân phối của chúng. Thông tin trong phần mềm là tổng hợp kỹ thuật, không phải tư vấn pháp lý.
+</td></tr></table>
+
+<h3>10.3. Biến môi trường chỉ đường dẫn solver</h3>
+<table width="100%" border="1" cellspacing="0" cellpadding="6">
+<tr><th align="left">Biến</th><th align="left">Ý nghĩa</th></tr>
+<tr><td><code>FASTCAE_CCX</code></td><td>CalculiX (<code>ccx</code>)</td></tr>
+<tr><td><code>FASTCAE_GMSH</code></td><td>Gmsh ngoài</td></tr>
+<tr><td><code>FASTCAE_OPENFOAM_BIN</code></td><td>OpenFOAM</td></tr>
+<tr><td><code>FASTCAE_ASTER_BIN</code>, <code>FASTCAE_RADIOSS_BIN</code>, <code>FASTCAE_SU2_BIN</code>, <code>FASTCAE_ELMER_BIN</code></td><td>Code_Aster, OpenRadioss, SU2, Elmer</td></tr>
+<tr><td><code>FASTCAE_PYTHON</code></td><td>Python dùng cho script và solver chạy bằng Python</td></tr>
+<tr><td><code>FASTCAE_FREECAD</code>, <code>FASTCAE_CAD_CONVERTER</code></td><td>Nhập FreeCAD; bộ chuyển đổi định dạng CAD đóng</td></tr>
+<tr><td><code>FASTCAE_WORK</code></td><td>Thư mục làm việc ghi được (mặc định <code>%LOCALAPPDATA%\FastCAE\work</code> trên Windows, <code>~/.local/share/FastCAE/work</code> trên Linux)</td></tr>
+</table>
+
+<!-- ======================================================================= -->
+<h2><a name="ket-qua">11. Xem và xuất kết quả</a></h2>
+<ul>
+<li><b>Trường hiển thị</b> (bảng Kết quả): chuyển vị, von Mises, nhiệt độ, vận tốc, áp suất… tuỳ loại bài toán; thanh màu turbo hiện cạnh mô hình.</li>
+<li><b>Phóng đại biến dạng</b>: thanh trượt 0–100; biến dạng được nhân lên để nhìn rõ.</li>
+<li><b>Đọc giá trị</b>: bấm chuột trái (không kéo) lên bề mặt để đọc giá trị tại nút gần nhất.</li>
+<li><b>Hướng nhìn chuẩn</b> ở thẻ Kết quả: Đẳng cự, Trước, Phải, Trên, Sau, Trái, Dưới; <b>Vừa khung</b> để vừa màn hình.</li>
+<li><b>Tóm tắt kết quả</b> hiện ở đầu bảng Kết quả; <b>Cây mô hình</b> liệt kê số nút, số phần tử.</li>
+<li><b>Xuất VTK</b> và <b>Chụp ảnh</b> ở thẻ Tệp hoặc Kết quả.</li>
+</ul>
+
+<h3>Mở kết quả của solver ngoài</h3>
+<p><b>Tệp ▸ Mở kết quả (.vtk)…</b> (hoặc kéo-thả file <code>.vtk</code>, hoặc <code>fastcae.show()</code> trong Python/Lua) đưa kết quả của OpenFOAM, SU2, Code_Aster… lên khung 3D:</p>
+<ul>
+<li>Đọc <b>VTK legacy ASCII, UNSTRUCTURED_GRID</b>: tứ diện (cả bậc hai), lục diện, lăng trụ, chóp được tách thành tứ diện; ô tam giác/tứ giác/đường bị bỏ qua và báo số lượng.</li>
+<li>Trường theo nút hiện trong hộp <b>Trường</b>; trường vectơ thêm <code>&lt;tên&gt;_magnitude</code>; trường theo ô được lấy trung bình về nút.</li>
+<li>Không đọc được VTK nhị phân. Với OpenFOAM dùng <code>foamToVTK -ascii</code>.</li>
+<li><code>.frd</code> (CalculiX), <code>.rmed</code> (Code_Aster), animation OpenRadioss, <code>.vtu</code> của SU2 chưa đọc trực tiếp: chuyển sang <code>.vtk</code> bằng <code>ccx2paraview</code>, <code>meshio</code> hoặc ParaView.</li>
+</ul>
+
+<!-- ======================================================================= -->
+<h2><a name="lap-trinh">12. Lập trình: Lua, Python, C++</a></h2>
+<p>Ba lớp dùng chung <b>một bộ giải</b> và một định dạng case; chọn ngôn ngữ theo nhu cầu:</p>
+<table width="100%" border="1" cellspacing="0" cellpadding="6">
+<tr><th align="left">Lớp</th><th align="left">Cần cài thêm</th><th align="left">Hợp với</th></tr>
+<tr><td><b>Lua 5.4</b> trong bảng Lập trình</td><td>Không (nhúng sẵn)</td><td>Quét tham số, tối ưu, tổ hợp tải, tính tay, đưa kết quả lên khung 3D</td></tr>
+<tr><td><b>Python 3</b> (<code>python/fastcae.py</code>)</td><td>Python</td><td>numpy/scipy/pandas, vẽ biểu đồ matplotlib, tự động hoá hàng loạt, gọi solver ngoài</td></tr>
+<tr><td><b>C++20</b> (<code>fastcae_core</code>)</td><td>Trình biên dịch</td><td>Nhúng solver vào chương trình khác, tốc độ, viết solver mới</td></tr>
+</table>
+
+<h3>12.1. Bảng Lập trình</h3>
+<p>Thẻ <b>Lập trình</b> (hoặc dock <i>Lập trình</i> ở phía dưới): chọn ngôn ngữ ở góc trái thanh công cụ, soạn script có tô màu cú pháp, <b>Chạy (F6)</b>, <b>Dừng</b>, <b>Mở/Lưu</b>, menu <b>Ví dụ</b> (có sẵn nhiều script mẫu) và nút <b>API</b> (danh sách hàm). <b>F7</b> phóng to/thu nhỏ bảng; <b>A+/A−</b> đổi cỡ chữ. Script chạy ở luồng nền; đầu ra hiện ở khung bên dưới.</p>
+<pre>-- dầm công xôn bằng khung 1D, đối chiếu lý thuyết (Lua)
+local s = fastcae.section("ibeam", 0.15, 0.30, 0.0107, 0.0071)
+local res = fastcae.solve(fastcae.case{
+  type = "frame", E = 210e9, nu = 0.3, rho = 7850,
+  section = "IPE ibeam 0.15 0.30 0.0107 0.0071",
+  node = { "1 0 0 0", "2 3 0 0" }, member = "1 2 IPE beam",
+  support = "1 fixed", nload = "2 0 0 -5000" })
+print(res.values.max_displacement, 5000 * 3^3 / (3 * 210e9 * s.Iy))
+fastcae.show(res)       -- hiển thị lên khung 3D</pre>
+
+<h3>12.2. Các hàm Lua chính</h3>
+<table width="100%" border="1" cellspacing="0" cellpadding="6">
+<tr><th align="left">Hàm</th><th align="left">Mô tả</th></tr>
+<tr><td><code>fastcae.run(text)</code> / <code>fastcae.solve(text)</code></td><td>Chạy bài toán; <code>solve</code> báo lỗi nếu thất bại, <code>run</code> trả <code>res.ok</code></td></tr>
+<tr><td><code>fastcae.case{…}</code></td><td>Dựng văn bản case từ bảng Lua</td></tr>
+<tr><td><code>fastcae.templates()</code>, <code>fastcae.shape()</code>, <code>fastcae.frame_template()</code>, <code>fastcae.shell_template()</code></td><td>Mẫu cấu kiện</td></tr>
+<tr><td><code>fastcae.section(kind, …)</code></td><td>A, Iy, Iz, J của tiết diện</td></tr>
+<tr><td><code>fastcae.materials</code></td><td><code>steel</code>, <code>concrete</code>, <code>aluminium</code> (E, nu, rho, fy)</td></tr>
+<tr><td><code>fastcae.write_csv()</code>, <code>fastcae.read_file()</code></td><td>Ghi bảng số, đọc file văn bản</td></tr>
+<tr><td><code>fastcae.show(res)</code>, <code>fastcae.open_case(text)</code></td><td>Chỉ trong giao diện: hiện kết quả lên khung 3D; nạp case vào bảng Bài toán</td></tr>
+</table>
+<p>Kết quả <code>res</code>: <code>res.values.&lt;tên&gt;</code> (ví dụ <code>max_displacement</code>, <code>max_stress</code>, <code>max_utilization</code>, <code>frequency_1_hz</code>), <code>res.series.&lt;tên&gt;</code> (dãy số), và các phương thức <code>res:field()</code>, <code>res:field_stats()</code>, <code>res:save_vtk(path)</code>.</p>
+
+<h3>12.3. Script mẫu</h3>
+<table width="100%" border="1" cellspacing="0" cellpadding="6">
+<tr><th align="left">Script</th><th align="left">Nội dung</th></tr>
+<tr><td><code>00_xin_chao.lua</code></td><td>Bảng <code>fastcae</code>, dầm công xôn so với lý thuyết, <code>fastcae.show</code></td></tr>
+<tr><td><code>01_tiet_dien.lua</code></td><td>A, I, W, khối lượng/m và độ võng của các tiết diện</td></tr>
+<tr><td><code>02_quet_tham_so_dam.lua</code></td><td>Quét chiều cao dầm, so với 5qL⁴/384EI, ghi CSV</td></tr>
+<tr><td><code>03_toi_uu_tiet_dien.lua</code></td><td>Chia đôi tìm chiều cao nhỏ nhất thoả độ võng và ứng suất</td></tr>
+<tr><td><code>04_dan_so_khoang.lua</code></td><td>Dàn Warren theo số khoang: lực dọc, độ võng, khối lượng</td></tr>
+<tr><td><code>05_tan_so_theo_chieu_dai.lua</code></td><td>Tần số riêng theo chiều dài so với công thức</td></tr>
+<tr><td><code>06_to_hop_tai_trong.lua</code></td><td>Duyệt tổ hợp tải, lấy tổ hợp bất lợi nhất theo σ/fy</td></tr>
+<tr><td><code>07_hoi_tu_luoi_tam.lua</code></td><td>Hội tụ lưới của tấm vỏ (cần CalculiX)</td></tr>
+<tr><td><code>08_ccx_kiem_chung.lua</code>, <code>09_openfoam_kiem_chung.lua</code></td><td>Chạy lại toàn bộ kiểm chứng CalculiX và OpenFOAM</td></tr>
+<tr><td><code>10_</code>–<code>14_</code> (Python, C++)</td><td>Gọi solver ngoài, quét tham số, hiển thị kết quả</td></tr>
+</table>
+
+<h3>12.4. Python</h3>
+<pre>import fastcae                       # đặt FASTCAE_CLI nếu fastcae-cli không có trong PATH
+res = fastcae.run(fastcae.template("cantilever_beam", 3.0, 5000, 6)).raise_for_status()
+print(res.values["max_displacement"], res.series["node_uz"])
+
+for s in fastcae.solvers(): print(s["id"], s["installed"], s["path"])
+r = fastcae.openfoam(r"D:\foam\cav", ["blockMesh", "icoFoam", "foamToVTK -ascii"])
+fastcae.show(r)                      # đưa file .vtk mới nhất lên khung 3D</pre>
+<p>Module chỉ dùng thư viện chuẩn của Python và gọi <code>fastcae-cli run --json</code>, nên mọi loại bài toán đều dùng được. Có thêm <code>fastcae.code_aster()</code>, <code>openradioss()</code>, <code>su2()</code>, <code>calculix()</code>, <code>elmer()</code>.</p>
+
+<h3>12.5. C++</h3>
+<pre>fc::solver("su2", "D:/su2/case.cfg", "-n 4");
+auto r = fc::run(caseText);          // bài toán nội tại, r.values / r.series / r.mesh
+fc::shell("gmsh -3 a.geo");</pre>
+<p>Script C++ trong bảng Lập trình không cần <code>main()</code> (được bọc tự động, đã có <code>#include "sdk/fastcae_all.hpp"</code>); cần g++/clang++ (MinGW-w64 trên Windows) hoặc <code>cl</code> và FastCAE SDK (<code>cmake --install build --component sdk</code>). Dùng ngoài dự án: <code>add_subdirectory(FastCAE)</code> rồi <code>target_link_libraries(app PRIVATE fastcae_core)</code>. API ở phiên bản 0.x, chưa ổn định.</p>
+
+<h3>12.6. An toàn khi chạy script</h3>
+<p>Script là mã chạy trên máy bạn như macro. Lua đã tắt các hàm chạy lệnh hoặc xoá file (<code>os.execute</code>, <code>os.remove</code>, <code>io.popen</code>, <code>dofile</code>…), nhưng đó chỉ là lớp phòng ngừa, không phải môi trường cô lập. <b>Chỉ chạy script bạn tin cậy.</b> Script Python và C++ chạy với đầy đủ quyền của người dùng.</p>
+
+<!-- ======================================================================= -->
+<h2><a name="dong-lenh">13. Dòng lệnh <code>fastcae-cli</code></a></h2>
+<p>Bản dòng lệnh không cần đồ hoạ, phù hợp chạy hàng loạt, máy chủ, CI. Bản chỉ có lõi dựng được không cần thư viện ngoài (<code>-DFASTCAE_BUILD_GUI=OFF -DFASTCAE_WITH_GMSH=OFF</code>).</p>
+<table width="100%" border="1" cellspacing="0" cellpadding="6">
+<tr><th align="left">Lệnh</th><th align="left">Tác dụng</th></tr>
+<tr><td><code>fastcae-cli run case.fcae [--json]</code></td><td>Chạy một bài toán; <code>--json</code> cho kết quả dạng JSON</td></tr>
+<tr><td><code>fastcae-cli demo cantilever|conduction|cavity [thư_mục]</code></td><td>Chạy bài mẫu và ghi <code>.vtk</code></td></tr>
+<tr><td><code>fastcae-cli import mau.step --size 0.003 --scale 0.001 --out mau.vtk</code></td><td>Nhập CAD/lưới (<code>--size</code> theo mét)</td></tr>
+<tr><td><code>fastcae-cli formats</code></td><td>Liệt kê định dạng CAD máy bạn hỗ trợ</td></tr>
+<tr><td><code>fastcae-cli templates</code> / <code>template &lt;tên&gt; [tham số…]</code></td><td>Liệt kê / in file case mẫu của thư viện cấu kiện</td></tr>
+<tr><td><code>fastcae-cli script file.lua</code> hoặc <code>script -e "code"</code></td><td>Chạy script Lua</td></tr>
+<tr><td><code>fastcae-cli cxx file.cpp</code></td><td>Biên dịch và chạy script C++ với FastCAE SDK</td></tr>
+<tr><td><code>fastcae-cli solvers [--json]</code></td><td>Liệt kê solver, giấy phép, trạng thái cài</td></tr>
+<tr><td><code>fastcae-cli solver-run &lt;id&gt; &lt;input&gt; [--dir D] [--args "…"]</code></td><td>Chạy một solver ngoài trên file đầu vào</td></tr>
+<tr><td><code>fastcae-cli about</code> · <code>licenses</code> · <code>--version</code></td><td>Tác giả, giấy phép, phiên bản</td></tr>
+</table>
+<p>Giao diện cũng nhận tham số dòng lệnh:</p>
+<pre>fastcae                                  # mở giao diện
+fastcae examples/plate_hole.fcae         # mở thẳng một case
+fastcae --demo cantilever --scalar vonmises --warp 200 --screenshot a.png   # chụp ảnh không cần bấm
+fastcae --theme light --tab 3 --size 1400x850</pre>
+
+<!-- ======================================================================= -->
+<h2><a name="file-case">14. Tham chiếu file bài toán (<code>.fcae</code>)</a></h2>
+<p>Dạng <code>khoá = giá trị</code>, một khoá một dòng, <code>#</code> bắt đầu chú thích, khoá không phân biệt hoa/thường. Đơn vị SI. Khoá <code>type</code> quyết định loại bài toán: <code>elastic</code>, <code>thermal</code>, <code>cavity</code>, <code>cfd3d</code>, <code>frame</code>, <code>shell</code>.</p>
+<table width="100%" border="1" cellspacing="0" cellpadding="6">
+<tr><th align="left">Khoá</th><th align="left">Áp dụng</th><th align="left">Ý nghĩa</th></tr>
+<tr><td><code>type</code></td><td>tất cả</td><td>Loại bài toán</td></tr>
+<tr><td><code>geometry</code></td><td>elastic / thermal / cfd3d</td><td><code>box lx ly lz</code> · <code>cylinder R L</code> · <code>sphere R</code> · <code>file đường_dẫn</code></td></tr>
+<tr><td><code>divisions</code></td><td>box</td><td>Số chia <code>nx ny nz</code></td></tr>
+<tr><td><code>mesh_size</code></td><td>trụ, cầu, file CAD</td><td>Cỡ phần tử tối đa, <b>tính bằng mét</b> (0 = tự động)</td></tr>
+<tr><td><code>unit_scale</code></td><td>file CAD</td><td>Hệ số quy đổi sang mét (STEP mm → <code>0.001</code>)</td></tr>
+<tr><td><code>order</code></td><td>elastic / thermal</td><td><code>1</code> = T4 (mặc định), <code>2</code> = T10</td></tr>
+<tr><td><code>solver</code></td><td>elastic / thermal / cavity / cfd3d</td><td><code>builtin</code> (mặc định), <code>calculix</code>, <code>openfoam</code></td></tr>
+<tr><td><code>analysis</code></td><td>CalculiX</td><td>Xem bảng ở mục 6.4</td></tr>
+<tr><td><code>E</code>, <code>nu</code>, <code>k</code>, <code>rho</code></td><td>vật liệu</td><td>Mô đun Young, Poisson, độ dẫn nhiệt, khối lượng riêng</td></tr>
+<tr><td><code>fix</code></td><td>elastic</td><td><code>fix = xmin</code> (3 phương) hoặc <code>fix = ymin y</code>; lặp được</td></tr>
+<tr><td><code>load</code></td><td>elastic</td><td><code>load = xmax 0 0 -1000</code>: <b>tổng</b> lực (N), phân bố theo diện tích phụ trách</td></tr>
+<tr><td><code>pressure</code></td><td>CalculiX</td><td><code>pressure = tập p</code> (Pa, dương = nén vào mặt)</td></tr>
+<tr><td><code>temp</code>, <code>heat</code></td><td>thermal</td><td><code>temp = xmin 100</code>; <code>heat = xmax 50</code> (tổng công suất, W)</td></tr>
+<tr><td><code>nodeset</code></td><td>tất cả</td><td>Tập nút hình học: <code>nodeset = tên plane nx ny nz d tol [body k]</code></td></tr>
+<tr><td><code>linear_solver</code></td><td>elastic / thermal</td><td><code>auto</code>, <code>direct</code>, <code>cg</code>, <code>petsc</code></td></tr>
+<tr><td><code>output</code></td><td>tất cả</td><td>File <code>.vtk</code> kết quả (CLI; đường dẫn tương đối tính từ thư mục file case)</td></tr>
+<tr><td><code>work_dir</code>, <code>job_name</code>, <code>ccx_path</code></td><td>solver ngoài</td><td>Thư mục chạy, tên job, đường dẫn <code>ccx</code></td></tr>
+<tr><td><code>n</code>, <code>Re</code>, <code>lid_speed</code>, <code>max_steps</code>, <code>end_time</code></td><td>cavity</td><td>Lưới, Reynolds, vận tốc nắp, số bước, thời gian mô phỏng (OpenFOAM)</td></tr>
+</table>
+<p>Tập nút theo hộp bao của lưới: <code>xmin xmax ymin ymax zmin zmax all</code>. Các khoá riêng của khung/dàn và CFD 3D xem ở chương <a href="#cau-kien">9</a> và <a href="#cfd">8</a>.</p>
+<p>Ví dụ trọn vẹn – tấm có lỗ nhập từ STEP (<code>examples/plate_hole.fcae</code>: tấm 100×40×20 mm, lỗ Ø16, kéo 10 kN, T10):</p>
+<pre>type = elastic
+geometry = file plate_hole.step
+unit_scale = 0.001
+mesh_size = 0.003
+order = 2
+E = 210e9
+nu = 0.3
+fix = xmin
+load = xmax 10000 0 0</pre>
+
+<!-- ======================================================================= -->
+<h2><a name="kiem-chung">15. Kiểm chứng độ chính xác</a></h2>
+<p>FastCAE đi kèm bộ kiểm thử tự động (<code>ctest</code>, cũng chạy dưới ASan/UBSan) và các script kiểm chứng đối chiếu lời giải giải tích. Một số điểm đáng chú ý:</p>
+<ul>
+<li><b>Patch test</b> T4 và T10: ứng suất đều và co ngang Poisson đúng đến ~1e-6.</li>
+<li><b>Khung 1D</b>: dầm công xôn khớp PL³/3EI đến 1e-9; dầm đơn giản chịu tải đều khớp 5qL⁴/384EI, qL/2, qL²/8 đến 1e-6; dàn, xoắn, lò xo, cáp chùng khớp giải tích; dao động riêng dầm IPE300 f₁ = 10,961 Hz trùng công thức; cột Euler công xôn/hai đầu bản lề lệch dưới 0,2%.</li>
+<li><b>CalculiX</b>: tám chỉ tiêu (dao động riêng, mất ổn định, biến dạng lớn, dẻo, động lực, nhiệt quá độ, ứng suất nhiệt…) lệch 0,07–4,3% so với giải tích; chạy lại bằng <code>fastcae-cli script scripts/08_ccx_kiem_chung.lua</code>.</li>
+<li><b>OpenFOAM</b>: <code>scripts/09_openfoam_kiem_chung.lua</code>; riêng lưới tứ diện, sai số áp suất tầng lưu từng ~15% đã được tìm ra nguyên nhân (gradient <code>Gauss linear</code> không nhất quán trên lưới lệch) và sửa bằng <code>pointCellsLeastSquares</code>: ống D = 1 nay lệch 0,26%.</li>
+<li><b>Thể tích từ STEP</b>: lưới cho 7,6096e-5 m³ so với 7,598e-5 m³ (+0,15%, do đa giác nội tiếp).</li>
+</ul>
+<p>Phương pháp số chi tiết (phần tử, tích phân, tải nhất quán, CFD hàm dòng–xoáy) có trong <code>docs/THEORY.md</code>; trạng thái từng solver trong <code>docs/SOLVERS.md</code>.</p>
+
+<!-- ======================================================================= -->
+<h2><a name="gioi-han">16. Giới hạn và xử lý sự cố</a></h2>
+
+<h3>16.1. Giới hạn cần biết</h3>
+<ul>
+<li>T4 cứng quá mức khi uốn → dùng <code>order = 2</code> (mặc định khi nhập CAD qua giao diện).</li>
+<li>Mô hình nội bộ là tuyến tính, biến dạng nhỏ; phi tuyến, động lực học, tiếp xúc cần CalculiX.</li>
+<li>Giới hạn kích thước: tối đa vài triệu phần tử (hộp thoại báo rõ khi vượt); hết bộ nhớ sẽ báo lỗi thay vì sập.</li>
+<li>Chọn mặt bằng chuột chỉ cho mặt phẳng.</li>
+<li>CFD 3D chỉ qua OpenFOAM; chưa có lớp biên lăng trụ, nhiều vật thể, nhiệt–dòng, đa pha, FSI.</li>
+<li>Chưa kiểm tra: bản dựng GUI trên Windows, bộ cài Inno Setup/NSIS; nhiều solver ngoài chưa thử với bản thật (bảng 10.2).</li>
+<li>API script (Lua/Python/C++) ở phiên bản 0.x, có thể đổi.</li>
+</ul>
+
+<h3>16.2. Sự cố thường gặp</h3>
+<table width="100%" border="1" cellspacing="0" cellpadding="6">
+<tr><th align="left">Hiện tượng</th><th align="left">Nguyên nhân và cách xử lý</th></tr>
+<tr><td>Báo "Không tạo được ngữ cảnh OpenGL" khi mở</td><td>Cần OpenGL 2.1 trở lên. Cập nhật driver đồ hoạ; trên máy ảo/Remote Desktop đặt <code>QT_OPENGL=software</code> (Windows) hoặc <code>LIBGL_ALWAYS_SOFTWARE=1</code> (Linux). Có thể dùng <code>fastcae-cli</code> không cần đồ hoạ.</td></tr>
+<tr><td>"Không tìm thấy CalculiX"</td><td>Cài <code>ccx</code> và đặt đường dẫn ở Công cụ ▸ Quản lý solver, hoặc biến <code>FASTCAE_CCX</code>, hoặc khoá <code>ccx_path</code>. FastCAE vẫn ghi file <code>.inp</code> để bạn chạy tay.</td></tr>
+<tr><td>"Tập nút không hợp lệ"</td><td>Mặt đã chọn không chứa nút nào (ví dụ mặt phẳng cắt xuyên bên trong vật thể) hoặc tên tập nút sai. Chọn lại mặt hoặc dùng <code>xmin … zmax</code>.</td></tr>
+<tr><td>Ma trận suy biến / kết quả vô nghĩa</td><td>Thiếu liên kết nên vật thể chuyển động tự do. Đặt đủ ngàm (và điều kiện giữ ngang với bài toán tiếp xúc).</td></tr>
+<tr><td>Không ghi được file (Program Files…)</td><td>Thư mục làm việc mặc định là cạnh file case; nếu không ghi được, FastCAE dùng thư mục người dùng (<code>FASTCAE_WORK</code> để đổi). Lưu bài toán vào Documents.</td></tr>
+<tr><td>Nhập STEP lỗi hoặc rất nhiều phần tử</td><td>Kiểm tra đơn vị (mm/m) và tăng cỡ lưới. Cần Gmsh (thư viện hoặc <code>gmsh</code> ngoài, đặt <code>FASTCAE_GMSH</code>).</td></tr>
+<tr><td>Mở được <code>.sldprt</code> không?</td><td>Không trực tiếp. Xuất STEP từ phần mềm gốc, hoặc đặt <code>FASTCAE_CAD_CONVERTER</code>.</td></tr>
+<tr><td>OpenFOAM không chạy</td><td>Cần <code>bash</code> (Linux, WSL, MSYS) và OpenFOAM đã cài; đặt <code>openfoam_bashrc</code> hoặc đường dẫn ở Quản lý solver. Xem tab Solver ngoài và file <code>log.*</code> trong thư mục case.</td></tr>
+<tr><td>Python/C++ trong bảng Lập trình không chạy</td><td>Cần Python 3 (đặt <code>FASTCAE_PYTHON</code>) hoặc g++/MinGW/MSVC; cần tìm thấy <code>fastcae-cli</code> cạnh chương trình (đặt <code>FASTCAE_CLI</code>).</td></tr>
+<tr><td>Windows báo "Windows đã bảo vệ PC của bạn" (SmartScreen) khi chạy bộ cài</td><td>Xảy ra với bộ cài chưa có chữ ký số được Microsoft tin cậy. Chọn <b>More info ▸ Run anyway</b>, hoặc kiểm tra mã băm SHA-256 công bố cùng bản phát hành. Bản phát hành chính thức nên ký số (xem <code>docs/RELEASE_WINDOWS.md</code>).</td></tr>
+<tr><td>Plugin <code>my_fem</code> báo lỗi chạy hoặc "ModuleNotFoundError"</td><td>Cần Python 3 có numpy và scipy: <code>pip install numpy scipy</code>. Nếu <code>python</code> không đúng bản, đặt <code>FASTCAE_PYTHON</code> = đường dẫn <code>python.exe</code>.</td></tr>
+</table>
+
+<!-- ======================================================================= -->
+<h2><a name="phim-tat">17. Phím tắt và thao tác nhanh</a></h2>
+<table width="100%" border="1" cellspacing="0" cellpadding="6">
+<tr><th align="left">Phím</th><th align="left">Tác dụng</th></tr>
+<tr><td><b>F1</b></td><td>Mở hướng dẫn sử dụng này</td></tr>
+<tr><td><b>F5</b></td><td>Giải bài toán hiện tại</td></tr>
+<tr><td><b>F6</b></td><td>Chạy script trong bảng Lập trình</td></tr>
+<tr><td><b>F7</b></td><td>Phóng to / thu nhỏ bảng Lập trình</td></tr>
+<tr><td><b>Ctrl+O</b></td><td>Mở file (bài toán, CAD/lưới, kết quả .vtk, script)</td></tr>
+<tr><td><b>Ctrl+S</b></td><td>Lưu bài toán</td></tr>
+<tr><td><b>Esc</b></td><td>Bỏ chọn mặt (trong khung 3D)</td></tr>
+<tr><td>Kéo-thả file vào cửa sổ</td><td>Mở nhanh như Ctrl+O</td></tr>
+</table>
+
+<!-- ======================================================================= -->
+<h2><a name="quy-trinh">18. Quy trình: dựng mô hình → solver bên ngoài → hiển thị</a></h2>
+<p>FastCAE được thiết kế làm <b>nơi dựng mô hình</b> và <b>nơi xem kết quả</b>. Phần <b>giải</b> (FEM, CFD…) do thuật toán bạn tự lập trình hoặc thư viện mã nguồn mở bên ngoài đảm nhiệm; FastCAE không nhúng các thư viện đó vào bên trong.</p>
+<pre>
+FastCAE: hình học → lưới → tập nút → vật liệu → liên kết → tải
+     │  ghi mô hình  &lt;job&gt;.fcmodel.json
+     ▼
+Chương trình giải (Python tự viết, CalculiX, OpenFOAM, SU2, FEniCSx…)
+     │  ghi kết quả  &lt;job&gt;_result.vtk
+     ▼
+FastCAE: tô màu, biến dạng, đồ thị, xuất file
+</pre>
+
+<h3>18.1. Ba cách gọi phép giải bên ngoài</h3>
+<table width="100%" border="1" cellspacing="0" cellpadding="6">
+<tr><th align="left">Cách</th><th align="left">Dùng khi</th><th align="left">Cách làm</th></tr>
+<tr><td><b>Solver tự khai báo (<code>.fsolver</code>)</b></td><td>Thuật toán/chương trình của bạn, hoặc thư viện chưa có cầu nối</td><td>Viết chương trình đọc <code>.fcmodel.json</code>, ghi <code>&lt;job&gt;_result.vtk</code>; khai báo bằng một file <code>.fsolver</code>; trong case ghi <code>solver = &lt;id&gt;</code>, bấm <b>Chạy</b>. Không cần biên dịch lại FastCAE.</td></tr>
+<tr><td><b>Cầu nối có sẵn</b></td><td>CalculiX, OpenFOAM, SU2</td><td><code>solver = calculix</code>, <code>type = cfd3d</code>, hoặc bảng <b>Quản lý solver</b> (chương 10).</td></tr>
+<tr><td><b>Lập trình trực tiếp</b></td><td>Thử nghiệm thuật toán nhanh trong Python</td><td>Bảng <b>Lập trình</b>: <code>fastcae.model()</code> → thuật toán → <code>fastcae.write_vtk()</code> → <code>fastcae.show()</code> (chương 12 và bài 2, 3 ở chương 19).</td></tr>
+</table>
+
+<h3>18.2. File mô hình <code>.fcmodel.json</code></h3>
+<p>Tạo tự động khi chạy case có <code>solver = &lt;id&gt;</code>, hoặc bằng <code>fastcae-cli model case.fcae ra.fcmodel.json</code>. Hiện hỗ trợ <code>type = elastic</code> và <code>thermal</code> (phần tử tứ diện 4 hoặc 10 nút). Đơn vị SI, chỉ số nút bắt đầu từ 0.</p>
+<table width="100%" border="1" cellspacing="0" cellpadding="6">
+<tr><th align="left">Khoá</th><th align="left">Nội dung</th></tr>
+<tr><td><code>analysis</code>, <code>order</code></td><td><code>elastic</code>/<code>thermal</code>; 1 (T4) hoặc 2 (T10)</td></tr>
+<tr><td><code>material</code></td><td><code>E, nu, k, rho</code></td></tr>
+<tr><td><code>mesh.nodes</code></td><td>toạ độ phẳng <code>[x0,y0,z0,x1,…]</code> (gồm nút giữa cạnh khi <code>order = 2</code>)</td></tr>
+<tr><td><code>mesh.tet4</code>, <code>mesh.tet10</code></td><td>bảng nút phần tử, phẳng. T10 theo thứ tự CalculiX/Abaqus: nút 0–3 là đỉnh, 4=cạnh 0-1, 5=1-2, 6=2-0, 7=0-3, 8=1-3, 9=2-3</td></tr>
+<tr><td><code>dirichlet</code></td><td>liên kết: <code>{set, dofs, value, nodes}</code> (nhiệt: <code>{set, value, nodes}</code>)</td></tr>
+<tr><td><code>loads</code></td><td>tải đã phân bố lên nút: <code>nodal = [[nút, fx, fy, fz], …]</code> (nhiệt: <code>[[nút, q], …]</code>)</td></tr>
+<tr><td><code>node_sets</code></td><td>các tập nút đã dùng, theo tên</td></tr>
+</table>
+
+<h3>18.3. File kết quả <code>&lt;job&gt;_result.vtk</code></h3>
+<p>VTK legacy ASCII, <code>UNSTRUCTURED_GRID</code>, <b>điểm thứ i = nút i của mô hình</b>. Trường nút cần có: đàn hồi — <code>displacement</code> (VECTORS), tuỳ chọn <code>von_mises_nodal</code>; nhiệt — <code>temperature</code>. Trường khác (vô hướng/vectơ/theo ô) đều hiển thị được. Nếu solver chạy xong mà không có file này, FastCAE báo lỗi kèm đường dẫn mong đợi.</p>
+
+<h3>18.4. Khai báo solver: file <code>.fsolver</code></h3>
+<pre>
+id = my_fem
+name = FEM tự lập trình (Python)
+category = fem
+license = MIT
+env = FASTCAE_PYTHON
+input = model
+step = python3, python | "{plugin_dir}/my_fem.py" {input} {result}
+</pre>
+<p>FastCAE tự dò các file <code>*.fsolver</code> trong: thư mục của biến <code>FASTCAE_SOLVER_PLUGINS</code>; <code>%LOCALAPPDATA%\FastCAE\solvers.d</code> (Linux: <code>~/.local/share/FastCAE/solvers.d</code>); và <code>share\fastcae\solvers.d</code> trong thư mục cài đặt (nơi có sẵn plugin <code>my_fem</code>). Mẫu tham số: <code>{plugin_dir}</code>, <code>{input}</code> (file mô hình), <code>{result}</code> (file kết quả), <code>{dir}</code>, <code>{base}</code>. Plugin không ghi đè được solver có sẵn; giấy phép do bạn tự khai báo và tự đối chiếu. Solver chạy như tiến trình riêng nên giấy phép của nó không ảnh hưởng giấy phép MIT của FastCAE.</p>
+<p>Trong case, các khoá tuỳ chọn: <code>job_name</code> (mặc định <code>fastcae_job</code>), <code>work_dir</code>, <code>solver_path</code>, <code>solver_args</code>.</p>
+
+<!-- ======================================================================= -->
+<h2><a name="bai-thuc-hanh">19. Bài thực hành: từ dựng mô hình đến giải bằng thư viện bên ngoài</a></h2>
+<p>Các bài nằm ở thư mục <code>examples\tutorial</code> của bản cài (Start ▸ FastCAE ▸ <i>Ví dụ</i>). Mở file bằng <b>Ctrl+O</b>. Bài 1–3 cần Python 3 có <code>numpy</code> và <code>scipy</code> (<code>pip install numpy scipy</code>); nếu <code>python</code> không nằm trong PATH, đặt biến môi trường <code>FASTCAE_PYTHON</code> = đường dẫn <code>python.exe</code>.</p>
+
+<h3>Bài 1 – Dựng dầm, giải bằng thuật toán FEM tự viết (Python), xem kết quả</h3>
+<ol>
+<li><b>Dựng mô hình.</b> Mở <code>bai1_dam_fem_tu_viet.fcae</code>. Khung <b>Bài toán</b> cho: dầm 1,0 × 0,1 × 0,1 m (<code>geometry = box</code>), lưới 20×3×3 ô tứ diện 10 nút (<code>order = 2</code>), thép E = 210 GPa, ngàm ở mặt <code>xmin</code>, lực 1 kN hướng xuống ở mặt <code>xmax</code>.</li>
+<li><b>Giải bằng solver tích hợp.</b> Bấm <b>Chạy (F5)</b>. Ghi lại <i>|u|max</i> ở thanh trạng thái/bảng Kết quả: <b>1,90524e-4 m</b>. Lý thuyết dầm: P·L³/(3·E·I) = <b>1,905e-4 m</b>.</li>
+<li><b>Gọi thuật toán FEM tự viết.</b> Bỏ dấu <code>#</code> ở dòng <code>#solver = my_fem</code>, bấm <b>Chạy</b>. Tab <b>Nhật ký</b> hiện FastCAE ghi mô hình <code>fastcae_job.fcmodel.json</code>, chạy <code>my_fem.py</code> (FEM 3D viết bằng numpy/scipy), rồi đọc <code>fastcae_job_result.vtk</code>. Kết quả hiện trên khung 3D; <i>|u|max</i> phải <b>trùng bước 2</b>.</li>
+<li><b>Xem kết quả.</b> Bảng <b>Kết quả</b>: chọn <i>displacement_magnitude</i> hoặc <i>von_mises_nodal</i>, kéo <i>Phóng đại biến dạng</i>, bấm lên mô hình để đọc giá trị tại nút.</li>
+<li><b>Thay thuật toán.</b> Mở <code>my_fem.py</code> (trong <code>share\fastcae\solvers.d</code>), sửa hàm <code>solve()</code> theo ý bạn (đổi vật liệu, phần tử, phương pháp giải), chạy lại – không cần biên dịch FastCAE.</li>
+</ol>
+
+<h3>Bài 2 – Lập trình FEM trong bảng Lập trình (Python)</h3>
+<ol>
+<li>Mở bảng <b>Lập trình</b> (thẻ Lập trình, hoặc <b>F7</b>), chọn ngôn ngữ <b>Python</b>, mở <code>bai2_python_fem.py</code>, bấm <b>Chạy (F6)</b>.</li>
+<li>Script gọi <code>fastcae.model(CASE)</code> để FastCAE dựng mô hình, đưa mô hình dạng mảng numpy cho hàm <code>giai()</code> (thuật toán của bạn), in độ võng so với lý thuyết rồi <code>fastcae.write_vtk()</code> + <code>fastcae.show()</code> để hiện lên khung 3D.</li>
+<li>Thay thân hàm <code>giai()</code> bằng thuật toán của bạn – dữ liệu vào gồm <code>nodes, tet10, material, dirichlet, loads</code>.</li>
+</ol>
+
+<h3>Bài 3 – Lập trình CFD: dòng chảy khoang kín nắp trượt</h3>
+<ol>
+<li>Mở <code>bai3_cfd_python.py</code> ở bảng Lập trình (Python), bấm <b>Chạy (F6)</b>. Thuật toán hàm dòng – xoáy (sai phân trung tâm, giải Poisson trực tiếp) chạy khoảng 1–2 giây trên lưới 41×41, Re = 100.</li>
+<li>Nhật ký in <i>u tại tâm</i> so với Ghia và cộng sự (1982) = −0,20581 (kết quả mẫu: −0,2040, lệch 0,9%). Khung 3D hiện trường <i>speed</i>, <i>streamfunction</i>, <i>vorticity</i>, <i>velocity</i>.</li>
+<li>Đổi lưới và Re bằng đối số dòng lệnh (<code>python bai3_cfd_python.py 61 400</code>) hoặc sửa hàm <code>cavity()</code> để thử sơ đồ khác.</li>
+</ol>
+
+<h3>Bài 4 – Gọi thư viện CAE mã nguồn mở có sẵn (cần cài thêm)</h3>
+<table width="100%" border="1" cellspacing="0" cellpadding="6">
+<tr><th align="left">Mục tiêu</th><th align="left">Cách làm</th></tr>
+<tr><td>FEM bằng CalculiX</td><td>Cài <code>ccx</code>, đặt đường dẫn ở <b>Công cụ ▸ Quản lý solver</b>. Trong Bài 1 đổi dòng solver thành <code>solver = calculix</code>, bấm Chạy. Có thể thêm <code>analysis = frequency</code> (dao động riêng), <code>buckle</code>, <code>nlstatic</code>… (chương 6).</td></tr>
+<tr><td>CFD bằng OpenFOAM</td><td>Cài OpenFOAM (Windows: qua WSL), đặt đường dẫn ở Quản lý solver, mở <code>examples\cavity_openfoam.fcae</code>, bấm Chạy. FastCAE ghi case, chạy <code>blockMesh</code>/<code>icoFoam</code>/<code>foamToVTK</code>, đọc vận tốc và áp suất về khung 3D, đối chiếu cùng giá trị Ghia ở Bài 3.</td></tr>
+<tr><td>CFD nén được bằng SU2</td><td>Xem <code>examples\su2</code> và <code>fastcae.su2(...)</code> (chương 12); kết quả <code>.vtk</code> mở bằng <code>fastcae.show()</code>.</td></tr>
+<tr><td>Thư viện khác (FEniCSx, scikit-fem, MFEM…)</td><td>Viết chương trình mỏng như <code>my_fem.py</code>: đọc <code>.fcmodel.json</code>, gọi thư viện, ghi <code>_result.vtk</code>; khai báo bằng <code>.fsolver</code> (mục 18.4).</td></tr>
+</table>
+<table width="100%" cellspacing="0" cellpadding="8"><tr><td class="note">
+<b>Đã kiểm chứng và chưa kiểm chứng.</b> Bài 1–3 được chạy tự động bằng bộ kiểm thử trên Linux (độ võng khớp lý thuyết dầm; Bài 3 lệch Ghia 0,9%). Bài 4 dùng solver cài riêng; CalculiX và OpenFOAM đã được thử với bản thật ở các đợt trước (xem chương 15), nhưng chưa thử trên Windows. Hợp đồng solver theo mô hình hiện mới có đàn hồi và dẫn nhiệt; CFD tự viết chạy qua bảng Lập trình (Bài 3) chứ chưa qua <code>solver = …</code>.
+</td></tr></table>
+
+<hr>
+<p class="dim"><b>FastCAE</b> – Phần mềm CAE mã nguồn mở · Tác giả <b>Trần Minh Tâm</b> · Giấy phép MIT.<br>
+Tài liệu kỹ thuật chi tiết nằm trong thư mục <code>docs/</code> của bản cài: USER_GUIDE, SOLVERS, STRUCTURAL_LIBRARY, SCRIPTING, THEORY, BUILDING, LICENSES, ROADMAP.</p>
+
+</body>
+</html>

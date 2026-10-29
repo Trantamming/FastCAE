@@ -1,0 +1,19 @@
+# BÀI 1 - Dựng mô hình trong FastCAE, giải bằng thuật toán FEM do bạn tự viết (Python), xem kết quả ngay trên khung 3D.
+#
+# Bước làm (trong phần mềm): Tệp > Mở file này (Ctrl+O) > bấm Chạy (F5).
+#   1) Lần đầu để nguyên: giải bằng solver tích hợp sẵn của FastCAE -> ghi lại |u|max.
+#   2) Bỏ dấu # ở dòng "solver = my_fem" bên dưới rồi F5: FastCAE ghi mô hình, gọi my_fem.py (thuật toán FEM Python
+#      nằm trong thư mục solvers.d của bản cài), nhận kết quả về và tô màu. |u|max phải trùng bước 1.
+#   3) Đổi "divisions" (độ mịn lưới) hoặc lực "load" rồi chạy lại để thấy kết quả thay đổi.
+#
+# Kiểm chứng bằng lý thuyết dầm: độ võng đầu tự do = P L^3 / (3 E I) = 1000 * 1 / (3 * 210e9 * 8.333e-6) = 1.905e-4 m.
+type = elastic
+geometry = box 1.0 0.1 0.1     # dầm 1,0 x 0,1 x 0,1 m
+divisions = 20 3 3             # số ô theo x y z
+order = 2                      # tứ diện 10 nút (chính xác khi uốn)
+E = 210e9
+nu = 0.3
+fix = xmin                     # ngàm tại mặt x = 0
+load = xmax 0 0 -1000          # lực 1 kN hướng xuống (-z) tại đầu tự do
+#solver = my_fem
+output = bai1_dam.vtk
