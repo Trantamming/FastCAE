@@ -59,6 +59,8 @@ jobs:
           FASTCAE_SIGN_PASSWORD: ${{ secrets.WINDOWS_PFX_PASSWORD }}
         run: |
           if (-not (Get-Command iscc -ErrorAction SilentlyContinue) -and -not (Test-Path "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe")) { choco install innosetup -y --no-progress }
+          if (Test-Path dist) { Remove-Item dist -Recurse -Force }   # bắt buộc: không để sót DLL cũ trong thư mục cài
+          if (Test-Path dist-installer) { Remove-Item dist-installer -Recurse -Force }
           cmake --install build --config Release --prefix dist
           $ver = "1.0.0"
           if ($env:GITHUB_REF -like "refs/tags/v*") { $ver = $env:GITHUB_REF_NAME.TrimStart("v") }   # phiên bản lấy từ tag vX.Y.Z
