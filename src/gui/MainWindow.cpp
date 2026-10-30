@@ -997,7 +997,10 @@ void MainWindow::finishRun(const RunReport& rep, const QString& logText) {
                               : last_.type == "thermal" ? "temperature" : "speed";
         const int idx = scalarBox_->findText(first);
         if (last_.ok && idx >= 0) scalarBox_->setCurrentIndex(idx);
-        warpSlider_->setValue(0);
+        // Lưới dày: cạnh đen che hết màu -> tự tắt cạnh (người dùng vẫn bật lại được bằng ô "Hiện cạnh lưới").
+        if (view_->surfaceEdgeCount() > 4000 && edges_->isChecked()) edges_->setChecked(false);
+        // Có chuyển vị: đặt sẵn phóng đại 30% để thấy dạng biến dạng ngay.
+        warpSlider_->setValue(view_->hasDisplacement() ? 30 : 0);
         view_->setStandardView(last_.type == "cavity" ? 3 : 0);
     }
     if (last_.ok) {

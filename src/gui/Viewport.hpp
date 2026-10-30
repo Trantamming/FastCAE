@@ -40,6 +40,8 @@ public:
     void showScalar(const QString& name);      // empty = uniform colour
     void setDeformationScale(double s);        // 0 = undeformed
     void setEdgesVisible(bool on);
+    std::size_t surfaceEdgeCount() const { return surfEdges_.size(); }   // số cạnh bề mặt (để tự tắt cạnh khi lưới dày)
+    bool hasDisplacement() const { return dispField_ != nullptr; }
     void resetView();
     void setStandardView(int which);           // 0 iso, 1 front, 2 right, 3 top, 4 back, 5 left, 6 bottom
     void fitAll();                             // keep orientation, reset zoom/pan
