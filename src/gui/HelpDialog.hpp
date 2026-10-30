@@ -17,10 +17,15 @@ namespace fastcae::gui {
 class HelpDialog : public QDialog {
     Q_OBJECT
 public:
-    explicit HelpDialog(QWidget* parent, bool dark);
+    // chapterAnchor rỗng: toàn bộ hướng dẫn. Khác rỗng: chỉ hiện chương có neo đó (ví dụ "nang-luc"),
+    // liên kết sang chương khác sẽ phát tín hiệu openGuideRequested để mở hướng dẫn đầy đủ.
+    explicit HelpDialog(QWidget* parent, bool dark, const QString& chapterAnchor = {});
 
     void setDark(bool dark);                 // đổi giao diện sáng/tối, giữ nguyên vị trí đang đọc
     void showAnchor(const QString& anchor);  // nhảy tới một chương, ví dụ "nang-luc", "file-case"
+
+signals:
+    void openGuideRequested(const QString& anchor);
 
 private:
     void reload();
@@ -33,6 +38,7 @@ private:
     QLabel* hint_ = nullptr;
     QString html_;
     bool dark_ = true;
+    bool chapterOnly_ = false;
 };
 
 }  // namespace fastcae::gui

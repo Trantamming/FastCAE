@@ -252,7 +252,7 @@ void MainWindow::createActions() {
     connect(add("guide", tr("Hướng dẫn\nsử dụng"), "doc", tr("Hướng dẫn sử dụng toàn bộ tính năng của FastCAE (F1)")), &QAction::triggered, this,
             [this] { showHelp(); });
     connect(add("capability", tr("Năng lực\ntính toán CAE"), "chart", tr("Giới thiệu năng lực tính toán CAE của FastCAE và độ chính xác đã kiểm chứng")),
-            &QAction::triggered, this, [this] { showHelp(QStringLiteral("nang-luc")); });
+            &QAction::triggered, this, [this] { showCapability(); });
     actLight_ = add("light", tr("Giao diện sáng"), "sun");
     actDark_ = add("dark", tr("Giao diện tối"), "moon");
     actLight_->setCheckable(true);
@@ -565,6 +565,7 @@ void MainWindow::setTheme(bool dark) {
     view_->setDarkTheme(dark);
     if (scriptDock_) scriptDock_->setDarkTheme(dark);
     if (helpDlg_) helpDlg_->setDark(dark);
+    if (capabilityDlg_) capabilityDlg_->setDark(dark);
     applyIcons();
     if (actDark_) {
         QSignalBlocker b1(actDark_), b2(actLight_);
@@ -1466,6 +1467,17 @@ void MainWindow::saveScreenshot() {
 void MainWindow::about(int tab) {
     AboutDialog dlg(this, tab);
     dlg.exec();
+}
+
+void MainWindow::showCapability() {
+    if (!capabilityDlg_) {
+        capabilityDlg_ = new HelpDialog(this, dark_, QStringLiteral("nang-luc"));
+        connect(capabilityDlg_, &HelpDialog::openGuideRequested, this, [this](const QString& a) { showHelp(a); });
+    }
+    capabilityDlg_->setDark(dark_);
+    capabilityDlg_->show();
+    capabilityDlg_->raise();
+    capabilityDlg_->activateWindow();
 }
 
 void MainWindow::showHelp(const QString& anchor) {
