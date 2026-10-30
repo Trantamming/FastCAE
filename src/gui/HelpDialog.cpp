@@ -73,8 +73,8 @@ QString stripTags(QString s) {
 
 }  // namespace
 
-HelpDialog::HelpDialog(QWidget* parent, bool dark, const QString& chapterAnchor) : QDialog(parent), dark_(dark), chapterOnly_(!chapterAnchor.isEmpty()) {
-    setWindowTitle(chapterOnly_ ? tr("FastCAE - Năng lực tính toán CAE") : tr("FastCAE - Hướng dẫn sử dụng"));
+HelpDialog::HelpDialog(QWidget* parent, bool dark) : QDialog(parent), dark_(dark) {
+    setWindowTitle(tr("FastCAE - Hướng dẫn sử dụng"));
     setModal(false);
     resize(1180, 780);
     auto* lay = new QVBoxLayout(this);
@@ -138,26 +138,13 @@ HelpDialog::HelpDialog(QWidget* parent, bool dark, const QString& chapterAnchor)
     });
     connect(view_, &QTextBrowser::anchorClicked, this, [this](const QUrl& url) {
         const QString frag = url.fragment();
-        if (url.scheme().isEmpty() && !frag.isEmpty()) {   // liên kết nội bộ "#chuong"
-            if (chapterOnly_ && !html_.contains(QStringLiteral("<a name=\"%1\"").arg(frag))) emit openGuideRequested(frag);   // chương khác: mở hướng dẫn đầy đủ
-            else view_->scrollToAnchor(frag);
-        }
+        if (url.scheme().isEmpty() && !frag.isEmpty()) view_->scrollToAnchor(frag);   // liên kết nội bộ "#chuong"
         else if (url.scheme() == QLatin1String("http") || url.scheme() == QLatin1String("https") || url.scheme() == QLatin1String("mailto"))
             QDesktopServices::openUrl(url);
     });
 
     html_ = loadHelpHtml();
-    if (chapterOnly_) {   // cắt đúng một chương: từ <h2> có neo đến <h2> kế tiếp
-        const int a = html_.indexOf(QStringLiteral("<a name=\"%1\"").arg(chapterAnchor));
-        const int start = a < 0 ? -1 : html_.lastIndexOf(QStringLiteral("<h2"), a);
-        if (start >= 0) {
-            int end = html_.indexOf(QStringLiteral("<h2"), a);
-            if (end < 0) end = html_.size();
-            html_ = QStringLiteral("<html><body>") + html_.mid(start, end - start) + QStringLiteral("</body></html>");
-        } else chapterOnly_ = false;   // không tìm thấy chương: rơi về hướng dẫn đầy đủ
-    }
     buildToc(html_);
-    if (chapterOnly_) toc_->expandAll();
     reload();
 }
 
@@ -168,10 +155,8 @@ void HelpDialog::buildToc(const QString& html) {
                                        QRegularExpression::DotMatchesEverythingOption);
     QTreeWidgetItem* chapter = nullptr;
     // đầu trang
-    if (!chapterOnly_) {
-        auto* head = new QTreeWidgetItem(toc_, QStringList(tr("Đầu trang")));
-        head->setData(0, kAnchorRole, QStringLiteral("dau-trang"));
-    }
+    auto* head = new QTreeWidgetItem(toc_, QStringList(tr("Đầu trang")));
+    head->setData(0, kAnchorRole, QStringLiteral("dau-trang"));
     auto it = re.globalMatch(html);
     while (it.hasNext()) {
         const auto m = it.next();

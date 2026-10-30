@@ -374,6 +374,8 @@ std::string findExecutable(const std::vector<std::string>& names, const std::str
         if (dir.empty()) continue;
         for (const auto& n : names) {
 #ifdef _WIN32
+            // Bỏ qua "python.exe"/"python3.exe" giả của Microsoft Store (thư mục WindowsApps): chưa phải Python thật
+            if (n.rfind("python", 0) == 0 && dir.find("WindowsApps") != std::string::npos) continue;
             for (const char* ext : {".exe", ".bat", ".cmd"}) {
                 const fs::path p = fs::path(dir) / (n + ext);
                 if (isFile(p)) return p.string();

@@ -1,0 +1,5 @@
+# Dầm console tham số: dài L, rộng W, cao H (mét)
+param L = 0.30
+param W = 0.03
+param H = 0.02
+box beam 0 0 0 L W H

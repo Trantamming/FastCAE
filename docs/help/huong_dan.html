@@ -629,6 +629,7 @@ load = xmax 10000 0 0</pre>
 <tr><td>OpenFOAM không chạy</td><td>Cần <code>bash</code> (Linux, WSL, MSYS) và OpenFOAM đã cài; đặt <code>openfoam_bashrc</code> hoặc đường dẫn ở Quản lý solver. Xem tab Solver ngoài và file <code>log.*</code> trong thư mục case.</td></tr>
 <tr><td>Python/C++ trong bảng Lập trình không chạy</td><td>Cần Python 3 (đặt <code>FASTCAE_PYTHON</code>) hoặc g++/MinGW/MSVC; cần tìm thấy <code>fastcae-cli</code> cạnh chương trình (đặt <code>FASTCAE_CLI</code>).</td></tr>
 <tr><td>Windows báo "Windows đã bảo vệ PC của bạn" (SmartScreen) khi chạy bộ cài</td><td>Xảy ra với bộ cài chưa có chữ ký số được Microsoft tin cậy. Chọn <b>More info ▸ Run anyway</b>, hoặc kiểm tra mã băm SHA-256 công bố cùng bản phát hành. Bản phát hành chính thức nên ký số (xem <code>docs/RELEASE_WINDOWS.md</code>).</td></tr>
+<tr><td>Bảng Lập trình (Python) báo "Python was not found; run without arguments to install from the Microsoft Store", mã 9009</td><td>Windows chỉ có lối tắt <code>python.exe</code> của Microsoft Store, chưa có Python thật. Cài Python 3 từ python.org (tick <i>Add python.exe to PATH</i>), mở Command Prompt chạy <code>pip install numpy scipy</code>, khởi động lại FastCAE. Hoặc đặt <code>FASTCAE_PYTHON</code> = đường dẫn <code>python.exe</code> thật. Phiên bản này tự bỏ qua lối tắt giả; trong lúc chờ có thể dùng bản Lua của Bài 5, không cần Python.</td></tr>
 <tr><td>Plugin <code>my_fem</code> báo lỗi chạy hoặc "ModuleNotFoundError"</td><td>Cần Python 3 có numpy và scipy: <code>pip install numpy scipy</code>. Nếu <code>python</code> không đúng bản, đặt <code>FASTCAE_PYTHON</code> = đường dẫn <code>python.exe</code>.</td></tr>
 </table>
 
@@ -723,6 +724,18 @@ step = python3, python | "{plugin_dir}/my_fem.py" {input} {result}
 <li>Đổi lưới và Re bằng đối số dòng lệnh (<code>python bai3_cfd_python.py 61 400</code>) hoặc sửa hàm <code>cavity()</code> để thử sơ đồ khác.</li>
 </ol>
 
+<h3>Bài 5 – Kết cấu phức tạp: khung thép không gian 5 tầng, FEM dầm 3D tự lập trình</h3>
+<ol>
+<li><b>Mô hình.</b> Mở <code>bai5_khung_khong_gian.py</code> ở bảng Lập trình (Python) và bấm <b>Chạy (F6)</b>. Chương trình dựng khung 3 nhịp 6 m × 2 nhịp 5 m × 4 tầng cao 3,5 m, tầng mái thu nhỏ (bỏ một nhịp), cột hộp, dầm chữ I hai cỡ, giằng chéo chữ X ở hai khung biên: <b>57 nút, 136 thanh, 342 bậc tự do</b>.</li>
+<li><b>Tải.</b> Tải sàn phân bố trên dầm (30 kN/m, mái 20 kN/m), tải gió ngang ở mép X = 0 kèm thành phần Y gây xoắn, khối lượng tập trung 15 t mỗi nút sàn.</li>
+<li><b>Thuật toán tự viết.</b> Hàm <code>lap_ma_tran()</code> ghép phần tử dầm Euler–Bernoulli 12 bậc tự do và thanh dàn thành ma trận thưa; <code>giai_tinh()</code> giải chuyển vị và phản lực; <code>giai_dao_dong()</code> giải dao động riêng K·φ = ω²·M·φ. Thay các hàm này bằng thuật toán của bạn (phần tử khác, phương pháp giải khác).</li>
+<li><b>Kiểm chứng ngay trong nhật ký.</b> (a) Dầm công xôn giải tích: võng và tần số lệch &lt; 0,01%; (b) tổng phản lực bằng tổng tải đặt; (c) so với solver khung có sẵn của FastCAE chạy cùng văn bản case: chuyển vị mọi nút, lực dọc từng thanh và 6 tần số riêng đầu tiên trùng đến sai số làm tròn. Lưu ý (c) chỉ cho biết hai chương trình cùng một công thức phần tử; độ đúng vật lý do (a), (b) bảo đảm.</li>
+<li><b>Hiển thị.</b> Khung 3D hiện từng thanh dạng lăng trụ, biến dạng nội suy dọc thanh (Hermite) kèm góc xoắn tiết diện; chọn trường <i>displacement_magnitude</i> hoặc <i>axial_force</i> (lực dọc theo thanh), kéo <i>Phóng đại biến dạng</i> khoảng 100–300 lần.</li>
+<li><b>Dán thẳng vào bảng Lập trình:</b> thư mục <code>examples\tutorial\dan_vao</code> có hai bản chạy độc lập một file: <code>bai5_lua_dan_vao_bang_lap_trinh.lua</code> (chọn ngôn ngữ Lua, không cần cài thêm gì, chạy chưa đến 1 giây; hiển thị 3D là kết quả của solver khung tích hợp) và <code>bai5_python_dan_vao_bang_lap_trinh.py</code> (chọn Python, cần numpy/scipy; hiển thị kết quả của chính thuật toán tự viết). Mở file bằng nút <b>Mở</b> hoặc dán nội dung rồi bấm <b>Chạy (F6)</b>.</li>
+<li>Script cũng ghi <code>bai5_khung_khong_gian.fcae</code>: mở file này bằng Ctrl+O và F5 để giải lại bằng solver khung tích hợp, chuyển <code>analysis = modal</code> để xem dạng dao động.</li>
+</ol>
+<p>Kết quả mẫu: chuyển vị ngang lớn nhất 13,1 mm tại mái; 6 tần số riêng đầu: 0,471 – 0,536 – 0,681 – 0,751 – 0,829 – 1,937 Hz.</p>
+
 <h3>Bài 4 – Gọi thư viện CAE mã nguồn mở có sẵn (cần cài thêm)</h3>
 <table width="100%" border="1" cellspacing="0" cellpadding="6">
 <tr><th align="left">Mục tiêu</th><th align="left">Cách làm</th></tr>
@@ -732,7 +745,7 @@ step = python3, python | "{plugin_dir}/my_fem.py" {input} {result}
 <tr><td>Thư viện khác (FEniCSx, scikit-fem, MFEM…)</td><td>Viết chương trình mỏng như <code>my_fem.py</code>: đọc <code>.fcmodel.json</code>, gọi thư viện, ghi <code>_result.vtk</code>; khai báo bằng <code>.fsolver</code> (mục 18.4).</td></tr>
 </table>
 <table width="100%" cellspacing="0" cellpadding="8"><tr><td class="note">
-<b>Đã kiểm chứng và chưa kiểm chứng.</b> Bài 1–3 được chạy tự động bằng bộ kiểm thử trên Linux (độ võng khớp lý thuyết dầm; Bài 3 lệch Ghia 0,9%). Bài 4 dùng solver cài riêng; CalculiX và OpenFOAM đã được thử với bản thật ở các đợt trước (xem chương 15), nhưng chưa thử trên Windows. Hợp đồng solver theo mô hình hiện mới có đàn hồi và dẫn nhiệt; CFD tự viết chạy qua bảng Lập trình (Bài 3) chứ chưa qua <code>solver = …</code>.
+<b>Đã kiểm chứng và chưa kiểm chứng.</b> Bài 1, 2, 3 và 5 được chạy tự động bằng bộ kiểm thử trên Linux (độ võng khớp lý thuyết dầm; Bài 3 lệch Ghia 0,9%). Bài 4 dùng solver cài riêng; CalculiX và OpenFOAM đã được thử với bản thật ở các đợt trước (xem chương 15), nhưng chưa thử trên Windows. Hợp đồng solver theo mô hình hiện mới có đàn hồi và dẫn nhiệt; CFD tự viết chạy qua bảng Lập trình (Bài 3) chứ chưa qua <code>solver = …</code>.
 </td></tr></table>
 
 <hr>

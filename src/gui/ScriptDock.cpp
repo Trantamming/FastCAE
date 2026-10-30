@@ -478,15 +478,34 @@ QString findPythonDir() {
     return {};
 }
 
+// Python chạy được thật? (loại "python.exe"/"python3.exe" giả của Microsoft Store: nó thoát với mã 9009 khi chưa cài Python)
+bool pythonRuns(const QString& exe) {
+    QProcess p;
+    p.start(exe, {"-c", "import sys; sys.exit(0)"});
+    if (!p.waitForStarted(3000)) return false;
+    if (!p.waitForFinished(10000)) { p.kill(); p.waitForFinished(1000); return false; }
+    return p.exitStatus() == QProcess::NormalExit && p.exitCode() == 0;
+}
+
 QString findPythonExe() {
     const QString env = qEnvironmentVariable("FASTCAE_PYTHON");
     if (!env.isEmpty()) return env;
     for (const QString& d : {appDir() + "/python/" + exeName("python"), appDir() + "/python-embed/" + exeName("python")})
         if (QFileInfo::exists(d)) return d;
-    for (const char* n : {"python3", "python", "py"}) {
-        const QString p = QStandardPaths::findExecutable(n);
-        if (!p.isEmpty()) return p;
-    }
+    QStringList cands;
+    for (const QString& dir : qEnvironmentVariable("PATH").split(QDir::listSeparator(), Qt::SkipEmptyParts))
+        for (const char* n : {"python", "python3", "py"}) {
+            const QString p = QDir(dir).filePath(exeName(n));
+            if (QFileInfo::exists(p)) cands << p;
+        }
+#ifdef Q_OS_WIN
+    // Bản cài python.org cho riêng người dùng nhưng chưa tick "Add to PATH"
+    QDir pd(qEnvironmentVariable("LOCALAPPDATA") + "/Programs/Python");
+    for (const QString& e : pd.entryList({"Python3*"}, QDir::Dirs, QDir::Name | QDir::Reversed))
+        cands << pd.filePath(e + "/python.exe");
+#endif
+    for (const QString& c : cands)
+        if (QFileInfo::exists(c) && pythonRuns(c)) return c;
     return {};
 }
 
@@ -504,7 +523,7 @@ void ScriptDock::runProcess() {
     if (py) {
         program = findPythonExe();
         if (program.isEmpty()) {
-            append(tr("✗ Không tìm thấy Python. Cài Python 3 (python.org) và chọn \"Add to PATH\", hoặc đặt biến FASTCAE_PYTHON trỏ tới python.exe.\n"));
+            append(tr("✗ Không tìm thấy Python. Cài Python 3 từ python.org (chọn \"Add to PATH\"; \"python.exe\" của Microsoft Store chỉ là lối tắt, chưa phải Python), rồi pip install numpy scipy; hoặc đặt biến FASTCAE_PYTHON trỏ tới python.exe thật.\n"));
             return;
         }
     } else {

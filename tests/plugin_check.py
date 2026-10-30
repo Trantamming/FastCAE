@@ -68,7 +68,7 @@ with tempfile.TemporaryDirectory() as d:
     # loi phai duoc bao ro: ket qua thieu
     bad = os.path.join(d, "bad")
     os.makedirs(bad)
-    open(os.path.join(bad, "bad.fsolver"), "w").write("id = bad_fem\nname = bad\nstep = python3, python | -c pass\n")
+    open(os.path.join(bad, "bad.fsolver"), "w").write("id = bad_fem\nname = bad\nstep = true | -c x\n")
     env = dict(os.environ, FASTCAE_SOLVER_PLUGINS=bad)
     open(os.path.join(d, "bad.fcae"), "w").write((CANTI % 1) + "solver = bad_fem\n")
     r = subprocess.run([CLI, "run", os.path.join(d, "bad.fcae"), "--json"], capture_output=True, text=True, env=env)

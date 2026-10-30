@@ -89,7 +89,6 @@ private slots:
     bool showStoredResult(const QString& path);   // mở .fcres đã lưu, không cần giải lại
     bool openParamModel(const QString& path);     // mở mô hình tham số .fcad: tạo case geometry = param ...
     void about(int tab = 0);
-    void showCapability();                       // Năng lực tính toán CAE (cửa sổ riêng, chỉ một chương)
     void showHelp(const QString& anchor = {});   // Hướng dẫn sử dụng (F1); anchor = chương cần mở, ví dụ "nang-luc"
     void scalarChanged(const QString& name);
 
@@ -150,7 +149,6 @@ private:
     Ribbon* ribbon_ = nullptr;
     ScriptDock* scriptDock_ = nullptr;
     HelpDialog* helpDlg_ = nullptr;
-    HelpDialog* capabilityDlg_ = nullptr;   // chỉ chương "Năng lực tính toán CAE"
     QPlainTextEdit* editor_ = nullptr;
     QPlainTextEdit* logView_ = nullptr;
     QPlainTextEdit* extLog_ = nullptr;

@@ -1,0 +1,55 @@
+# Khung cong mot tang, chiu tai ngang va tai phan bo: noi luc, he so su dung sigma/fy.
+# Khung cổng (một tầng, một nhịp) (mau khung/dan FastCAE, tac gia Tran Minh Tam)
+# Hai cột ngàm chân, dầm ngang; tải đứng phân bố trên dầm và lực ngang ở đỉnh cột trái.
+type = frame
+E = 210e9
+nu = 0.3
+rho = 7850
+yield = 235e6   # gioi han chay thep CCT34 (Pa): tinh he so su dung
+section = IPE ibeam 0.15 0.30 0.0107 0.0071   # chu I: b h tf tw (m)
+node = 1 0 0 0
+node = 2 0 0 1
+node = 3 0 0 2
+node = 4 0 0 3
+node = 5 0 0 4
+node = 6 6 0 0
+node = 7 6 0 1
+node = 8 6 0 2
+node = 9 6 0 3
+node = 10 6 0 4
+node = 11 0.75 0 4
+node = 12 1.5 0 4
+node = 13 2.25 0 4
+node = 14 3 0 4
+node = 15 3.75 0 4
+node = 16 4.5 0 4
+node = 17 5.25 0 4
+member = 1 2 IPE beam
+member = 2 3 IPE beam
+member = 3 4 IPE beam
+member = 4 5 IPE beam
+member = 6 7 IPE beam
+member = 7 8 IPE beam
+member = 8 9 IPE beam
+member = 9 10 IPE beam
+member = 5 11 IPE beam
+member = 11 12 IPE beam
+member = 12 13 IPE beam
+member = 13 14 IPE beam
+member = 14 15 IPE beam
+member = 15 16 IPE beam
+member = 16 17 IPE beam
+member = 17 10 IPE beam
+support = 1 fixed
+support = 6 fixed
+udl = 9 0 0 -20000
+udl = 10 0 0 -20000
+udl = 11 0 0 -20000
+udl = 12 0 0 -20000
+udl = 13 0 0 -20000
+udl = 14 0 0 -20000
+udl = 15 0 0 -20000
+udl = 16 0 0 -20000
+nload = 5 15000 0 0
+
+report = khung_cong_noi_luc.csv

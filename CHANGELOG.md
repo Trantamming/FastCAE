@@ -2,6 +2,10 @@
 
 ## 1.0.0 (chưa phát hành)
 
+- **Bài 5 bản dán thẳng vào bảng Lập trình** (`examples/tutorial/dan_vao/`): một file Lua (FEM dầm 3D tự viết thuần Lua, không cần cài thêm) và một file Python; cả hai có trong test `tutorial_examples`.
+
+- **Bài 5 (`examples/tutorial/bai5_khung_khong_gian.py`)**: khung thép không gian 5 tầng (57 nút, 136 thanh, có giằng và tầng thu nhỏ) với FEM dầm 3D tự lập trình (tĩnh + dao động riêng), kiểm chứng bằng dầm công xôn giải tích, cân bằng phản lực và đối chiếu solver khung có sẵn; hiển thị biến dạng Hermite lên khung 3D. Có trong test `tutorial_examples` và chương 19 của Hướng dẫn.
+
 - **Hướng dẫn trong phần mềm (F1)** thêm chương 18 (quy trình dựng mô hình → solver ngoài → hiển thị, định dạng `.fcmodel.json`/`_result.vtk`/`.fsolver`) và chương 19 (4 bài thực hành); thêm mục xử lý sự cố SmartScreen và plugin Python. Bài mẫu `examples/tutorial/` (bài 1 dầm + FEM Python tự viết, bài 2 FEM trong bảng Lập trình, bài 3 CFD khoang kín tự lập trình lệch Ghia 0,9%, bài 4 nối CalculiX/OpenFOAM/SU2). Test `tutorial_examples`.
 - Plugin đi kèm bản cài được tự dò (`share/fastcae/solvers.d`); `my_fem.fsolver` nhận `FASTCAE_PYTHON`.
 - **Bộ cài Windows (Inno Setup)**: ghi tác giả Trần Minh Tâm + email trong bộ cài và `fastcae.exe`; hỗ trợ ký số (`-SignPfx` / `-SignCommand`, secret CI), sinh SHA-256, job CI dựng bộ cài; `docs/RELEASE_WINDOWS.md`. Chưa dựng/cài thử trên Windows; ký số cần chứng chỉ riêng của tác giả (SmartScreen không thể loại bỏ chỉ bằng mã nguồn).

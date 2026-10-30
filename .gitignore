@@ -7,13 +7,3 @@ out/
 .vscode/
 .idea/
 CMakeUserPresets.json
-*.vtk
-dist
-dist-installer/
-*.exe
-*.pfx
-imported.vtk
-dist/
-dist-installer/
-Testing/
-ccx_shell/

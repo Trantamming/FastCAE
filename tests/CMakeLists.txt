@@ -72,9 +72,7 @@ endif()
 
 # Script C++ (không có main) biên dịch với SDK rồi chạy; cần g++/clang++ trên máy.
 find_program(FC_CXX NAMES g++ clang++ c++)
-# Lệnh "cxx" biên dịch mã người dùng bằng g++ và liên kết với thư viện của FastCAE: không thể khi thư viện build bằng MSVC (khác ABI)
-# hoặc bằng sanitizer (thiếu -fsanitize ở dòng g++ của người dùng).
-if(FC_CXX AND NOT MSVC AND NOT CMAKE_CXX_FLAGS MATCHES "sanitize")
+if(FC_CXX)
     add_test(NAME cli_cxx_script COMMAND fastcae-cli cxx ${CMAKE_CURRENT_SOURCE_DIR}/cxx_smoke.cpp)
     set_tests_properties(cli_cxx_script PROPERTIES PASS_REGULAR_EXPRESSION "CXX_SMOKE_OK" TIMEOUT 300)
 endif()

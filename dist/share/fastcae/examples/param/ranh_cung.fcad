@@ -1,0 +1,28 @@
+# Rãnh bầu dục (hai đường thẳng + hai cung) dựng bằng ràng buộc tiếp xúc. Đổi L, R rồi dựng lại.
+param L = 0.10     # khoảng cách hai tâm cung
+param R = 0.02     # bán kính hai đầu
+param T = 0.01     # dày
+
+csketch slot xy 0
+  pt A 0 0
+  pt B 0.1 0
+  pt C 0.1 0.04
+  pt D 0 0.04
+  pt O2 0.1 0.02
+  pt O1 0 0.02
+  line ab A B
+  line cd C D
+  arc r2 O2 B C        # cung NGƯỢC chiều kim đồng hồ quanh O2, từ B đến C
+  arc r1 O1 D A
+  fix A 0 0
+  horizontal ab
+  length ab L
+  radius r2 R
+  radius r1 R
+  tangent ab r2        # đường tiếp xúc cung tại đầu mút chung
+  tangent cd r2
+  tangent ab r1
+  tangent cd r1
+  wire ab r2 cd r1     # vòng kín: đường, cung, đường, cung
+end
+extrude body slot T
